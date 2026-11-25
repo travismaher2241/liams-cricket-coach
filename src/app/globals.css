@@ -17,7 +17,7 @@
 }
 
 html, body { background: var(--color-pitch); color: var(--color-ink); }
-body { -webkit-tap-highlight-color: transparent; }
+body { -webkit-tap-highlight-color: transparent; padding-top: env(safe-area-inset-top); }
 
 @utility card { @apply rounded-2xl bg-surface border border-line/60 p-4; }
 @utility btn { @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-4 text-lg font-semibold transition active:scale-[0.98] disabled:opacity-50 min-h-14; }

@@ -5,9 +5,11 @@ export const metadata: Metadata = {
   title: "Liam's Cricket",
   description: "Personal cricket development companion",
   robots: { index: false, follow: false },
+  applicationName: "Liam's Cricket",
+  appleWebApp: { capable: true, title: "Cricket", statusBarStyle: "black-translucent" },
 };
 
-export const viewport: Viewport = { themeColor: "#0b1726", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#0b1726", width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
