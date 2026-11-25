@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { and, eq } from "drizzle-orm";
-import { db, schema } from "@/db";
+import { listQuizAttempts } from "@/db/repo";
 import { requirePlayerView } from "@/lib/auth";
 import { dailyChallenge, recommend, dateSeed } from "@/lib/recommend";
 import { personalBests, recentAchievements, recommendContext, upcomingEvents, pendingReveals } from "@/lib/data";
@@ -23,10 +22,7 @@ export default async function PlayerHome({ searchParams }: { searchParams: Promi
     upcomingEvents(player.id, 2),
     pendingReveals(player.id),
   ]);
-  const [weeklyDone] = await db
-    .select({ id: schema.quizAttempts.id })
-    .from(schema.quizAttempts)
-    .where(and(eq(schema.quizAttempts.playerId, player.id), eq(schema.quizAttempts.kind, "weekly"), eq(schema.quizAttempts.weekKey, weekKey(new Date()))));
+  const [weeklyDone] = await listQuizAttempts(player.id, { kind: "weekly", weekKey: weekKey(new Date()) });
   const nextMatch = events.find((e) => e.type === "match");
   const matchSoon = nextMatch && nextMatch.startsAt.getTime() - Date.now() < 2 * 86400000;
 

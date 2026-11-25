@@ -1,5 +1,4 @@
-import { and, eq } from "drizzle-orm";
-import { db, schema } from "@/db";
+import { getEvent } from "@/db/repo";
 import { requirePlayerView } from "@/lib/auth";
 import { upcomingEvents } from "@/lib/data";
 import MatchDay from "@/components/MatchDay";
@@ -8,7 +7,7 @@ export default async function MatchDayPage({ searchParams }: { searchParams: Pro
   const { event } = await searchParams;
   const { player } = await requirePlayerView();
   let ev = null;
-  if (event) [ev] = await db.select().from(schema.events).where(and(eq(schema.events.id, Number(event)), eq(schema.events.playerId, player.id)));
+  if (event) ev = await getEvent(player.id, event);
   if (!ev) ev = (await upcomingEvents(player.id, 5)).find((e) => e.type === "match") ?? null;
   const fav = player.playerAnswers?.favShot;
   const battingFocus = fav && fav !== "skip" && fav !== "Defence!" ? `Trust your ${fav.toLowerCase()}.` : null;

@@ -2,16 +2,15 @@ import "server-only";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { db, schema } from "@/db";
-import { eq } from "drizzle-orm";
+import { getPlayer } from "@/db/repo";
 
 const COOKIE = "lcc_session";
 const secret = () => new TextEncoder().encode(process.env.SESSION_SECRET || "dev-only-secret-not-for-production!!");
 
 export interface Session {
-  uid: number;
+  uid: string;
   role: "parent" | "player";
-  pid: number; // player id
+  pid: string; // player id
 }
 
 export async function createSession(s: Session) {
@@ -38,7 +37,8 @@ export async function getSession(): Promise<Session | null> {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secret());
-    return { uid: payload.uid as number, role: payload.role as Session["role"], pid: payload.pid as number };
+    if (typeof payload.uid !== "string" || typeof payload.pid !== "string") return null;
+    return { uid: payload.uid, role: payload.role as Session["role"], pid: payload.pid };
   } catch {
     return null;
   }
@@ -48,7 +48,7 @@ export async function getSession(): Promise<Session | null> {
 export async function requirePlayerView() {
   const s = await getSession();
   if (!s) redirect("/");
-  const [player] = await db.select().from(schema.players).where(eq(schema.players.id, s.pid));
+  const player = await getPlayer(s.pid);
   if (!player) redirect("/");
   return { session: s, player };
 }
@@ -56,7 +56,7 @@ export async function requirePlayerView() {
 export async function requireParent() {
   const s = await getSession();
   if (!s || s.role !== "parent") redirect("/login/parent");
-  const [player] = await db.select().from(schema.players).where(eq(schema.players.id, s.pid));
+  const player = await getPlayer(s.pid);
   if (!player) redirect("/setup");
   return { session: s, player };
 }

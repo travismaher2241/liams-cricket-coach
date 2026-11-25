@@ -1,4 +1,4 @@
-import type { Match, Player } from "@/db/schema";
+import type { Match, Player } from "@/db/types";
 import { saveMatchParent } from "@/app/actions/parent";
 import { ballsToOvers } from "@/lib/stats";
 import { Field, Section } from "./ui";

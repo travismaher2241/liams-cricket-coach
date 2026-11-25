@@ -1,4 +1,4 @@
-import type { Match } from "@/db/schema";
+import type { Match } from "@/db/types";
 import { battingStats, bowlingStats } from "./stats";
 
 export interface EarnedAchievement {
@@ -15,7 +15,7 @@ export interface AchievementInput {
   personalBests: number;
   quizLevel: number;
   quizzesCompleted: number;
-  completedProgrammes: { id: number; title: string }[];
+  completedProgrammes: { id: string; title: string }[];
   reflectionWins: string[]; // all win keys from all reflections
   masteredAfterStruggle: number;
 }

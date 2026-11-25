@@ -18,7 +18,7 @@ const FEELINGS = [
 const CALM_FOCUS = ["Enjoy playing with your teammates.", "Watch the ball. That's all.", "Focus on the next ball."];
 const GO_FOCUS = ["Trust your shots.", "Commit to your decisions.", "Find your bowling rhythm.", "Watch the ball."];
 
-export default function MatchDay({ eventId, title, battingFocus }: { eventId: number | null; title: string; battingFocus: string | null }) {
+export default function MatchDay({ eventId, title, battingFocus }: { eventId: string | null; title: string; battingFocus: string | null }) {
   const [kit, setKit] = useState<string[]>([]);
   const [feeling, setFeeling] = useState<string | null>(null);
   const [, start] = useTransition();

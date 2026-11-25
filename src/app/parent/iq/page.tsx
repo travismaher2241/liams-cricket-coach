@@ -1,5 +1,4 @@
-import { desc, eq } from "drizzle-orm";
-import { db, schema } from "@/db";
+import { listQuizAttempts } from "@/db/repo";
 import { requireParent } from "@/lib/auth";
 import { answerHistory } from "@/lib/data";
 import { conceptStates, reinforcementConcepts } from "@/lib/quizEngine";
@@ -8,7 +7,7 @@ import { Section } from "@/components/ui";
 
 export default async function IQ() {
   const { player } = await requireParent();
-  const attempts = await db.select().from(schema.quizAttempts).where(eq(schema.quizAttempts.playerId, player.id)).orderBy(desc(schema.quizAttempts.completedAt)).limit(30);
+  const attempts = (await listQuizAttempts(player.id)).slice(0, 30);
   const hist = await answerHistory(player.id);
   const states = [...conceptStates(hist).values()];
   const reinforce = reinforcementConcepts(hist);

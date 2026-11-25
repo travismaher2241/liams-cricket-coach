@@ -1,9 +1,8 @@
 "use server";
 import bcrypt from "bcryptjs";
-import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { db, schema } from "@/db";
+import * as repo from "@/db/repo";
 import { getSession } from "@/lib/auth";
 import { TEMPLATE_BY_KEY } from "@/content/programmes";
 import { oversToBalls } from "@/lib/stats";
@@ -29,24 +28,21 @@ export async function saveProfile(fd: FormData) {
     if (v > 0) priorities[a] = Math.min(3, v);
   }
   const by = Number(fd.get("birthYear"));
-  await db
-    .update(schema.players)
-    .set({
-      displayName: str(fd, "displayName") ?? undefined,
+  await repo.updatePlayer(s.pid, {
+      ...(str(fd, "displayName") ? { displayName: str(fd, "displayName")! } : {}),
       birthYear: by > 1990 && by < 2030 ? by : null,
       battingHand: str(fd, "battingHand"),
       bowlingStyle: str(fd, "bowlingStyle"),
       team: str(fd, "team"),
       competition: str(fd, "competition"),
       season: str(fd, "season"),
-      seasonPhase: (str(fd, "seasonPhase") as "pre" | "in" | "off") ?? "in",
+      seasonPhase: (["pre", "in", "off"] as const).find((x) => x === str(fd, "seasonPhase")) ?? "in",
       parentOverview: str(fd, "parentOverview"),
       safetyNotes: str(fd, "safetyNotes"),
       equipment: fd.getAll("equipment").map(String),
       spaces: fd.getAll("spaces").map(String),
       priorities,
-    })
-    .where(eq(schema.players.id, s.pid));
+    });
   revalidatePath("/parent");
   redirect("/parent/profile?saved=1");
 }
@@ -55,8 +51,8 @@ export async function changePin(fd: FormData) {
   const s = await parent();
   const pin = String(fd.get("pin") ?? "");
   if (!/^\d{4}$/.test(pin)) redirect("/parent/profile?pin=bad");
-  const [p] = await db.select().from(schema.players).where(eq(schema.players.id, s.pid));
-  await db.update(schema.users).set({ pinHash: await bcrypt.hash(pin, 10) }).where(eq(schema.users.id, p.userId));
+  const p = await repo.getPlayer(s.pid);
+  if (p) await repo.updateUser(p.userId, { pinHash: await bcrypt.hash(pin, 10) });
   redirect("/parent/profile?pin=ok");
 }
 
@@ -64,21 +60,20 @@ export async function addObservation(fd: FormData) {
   const s = await parent();
   const body = str(fd, "body");
   if (!body) return;
-  const kind = (str(fd, "kind") ?? "observation") as "observation" | "coach_feedback" | "history" | "circumstance";
+  const kind = (["observation", "coach_feedback", "history", "circumstance"] as const).find((k) => k === str(fd, "kind")) ?? "observation";
   const area = str(fd, "area");
-  await db.insert(schema.observations).values({ playerId: s.pid, kind, area, body });
+  await repo.addObservation(s.pid, { playerId: s.pid, kind, area, body: body.slice(0, 5000), createdAt: new Date() });
   // Observations tagged with an area gently nudge that area's weighting (never shown to Liam).
   if (area && fd.get("boost") === "on") {
-    const [p] = await db.select().from(schema.players).where(eq(schema.players.id, s.pid));
-    const pr = { ...p.priorities, [area]: Math.min(3, (p.priorities[area] ?? 0) + 1) };
-    await db.update(schema.players).set({ priorities: pr }).where(eq(schema.players.id, s.pid));
+    const p = await repo.getPlayer(s.pid);
+    if (p) await repo.updatePlayer(s.pid, { priorities: { ...p.priorities, [area]: Math.min(3, (p.priorities[area] ?? 0) + 1) } });
   }
   revalidatePath("/parent/notes");
 }
 
-export async function deleteObservation(id: number) {
+export async function deleteObservation(id: string) {
   const s = await parent();
-  await db.delete(schema.observations).where(and(eq(schema.observations.id, id), eq(schema.observations.playerId, s.pid)));
+  await repo.deleteObservation(s.pid, id);
   revalidatePath("/parent/notes");
 }
 
@@ -87,8 +82,12 @@ export async function startProgramme(fd: FormData) {
   const t = TEMPLATE_BY_KEY[String(fd.get("template"))];
   if (!t) return;
   const target = Number(fd.get("targetSessions")) || t.targetSessions;
-  await db.insert(schema.programmes).values({
+  await repo.addProgramme(s.pid, {
     playerId: s.pid,
+    status: "active",
+    startedAt: new Date(),
+    completedAt: null,
+    revealedAt: null,
     templateKey: t.key,
     title: t.title,
     purpose: t.purpose,
@@ -100,20 +99,16 @@ export async function startProgramme(fd: FormData) {
   revalidatePath("/parent/programmes");
 }
 
-export async function setProgrammeStatus(id: number, status: "active" | "paused" | "completed") {
+export async function setProgrammeStatus(id: string, status: "active" | "paused" | "completed") {
   const s = await parent();
-  await db
-    .update(schema.programmes)
-    .set({ status, completedAt: status === "completed" ? new Date() : null })
-    .where(and(eq(schema.programmes.id, id), eq(schema.programmes.playerId, s.pid)));
+  await repo.updateProgramme(s.pid, id, { status, completedAt: status === "completed" ? new Date() : null });
   if (status === "completed") await refreshAchievements(s.pid);
   revalidatePath("/parent/programmes");
 }
 
-export async function deleteProgramme(id: number) {
+export async function deleteProgramme(id: string) {
   const s = await parent();
-  await db.update(schema.activities).set({ programmeId: null }).where(eq(schema.activities.programmeId, id));
-  await db.delete(schema.programmes).where(and(eq(schema.programmes.id, id), eq(schema.programmes.playerId, s.pid)));
+  await repo.deleteProgramme(s.pid, id);
   revalidatePath("/parent/programmes");
 }
 
@@ -153,25 +148,21 @@ function matchFromForm(fd: FormData) {
 
 export async function saveMatchParent(fd: FormData) {
   const s = await parent();
-  const id = Number(fd.get("id") || 0);
+  const id = String(fd.get("id") || "");
   const data = matchFromForm(fd);
   if (id) {
-    await db
-      .update(schema.matches)
-      .set({ ...data, editedByParent: true })
-      .where(and(eq(schema.matches.id, id), eq(schema.matches.playerId, s.pid)));
+    if (await repo.getMatch(s.pid, id)) await repo.updateMatch(s.pid, id, { ...data, editedByParent: true });
   } else {
-    await db.insert(schema.matches).values({ ...data, playerId: s.pid, isHistorical: fd.get("historical") === "on", editedByParent: true });
+    await repo.addMatch(s.pid, { ...data, playerId: s.pid, isHistorical: fd.get("historical") === "on", editedByParent: true, createdAt: new Date() });
   }
   await refreshAchievements(s.pid);
   revalidatePath("/parent/matches");
   redirect("/parent/matches?saved=1");
 }
 
-export async function deleteMatch(id: number) {
+export async function deleteMatch(id: string) {
   const s = await parent();
-  await db.delete(schema.reflections).where(eq(schema.reflections.matchId, id));
-  await db.delete(schema.matches).where(and(eq(schema.matches.id, id), eq(schema.matches.playerId, s.pid)));
+  await repo.deleteMatch(s.pid, id);
   redirect("/parent/matches");
 }
 
@@ -191,8 +182,9 @@ export async function addEvent(fd: FormData) {
   );
   const startsAt = new Date(guess.getTime() - offsetH * 3600000);
   const repeat = Math.min(26, Math.max(1, Number(fd.get("repeatWeeks") || 1)));
-  const type = (str(fd, "type") ?? "event") as "match" | "training" | "other_sport" | "rest" | "event";
-  await db.insert(schema.events).values(
+  const type = (["match", "training", "other_sport", "rest", "event"] as const).find((t) => t === str(fd, "type")) ?? "event";
+  await repo.addEvents(
+    s.pid,
     Array.from({ length: repeat }, (_, i) => ({
       playerId: s.pid,
       type,
@@ -205,8 +197,8 @@ export async function addEvent(fd: FormData) {
   revalidatePath("/parent/schedule");
 }
 
-export async function deleteEvent(id: number) {
+export async function deleteEvent(id: string) {
   const s = await parent();
-  await db.delete(schema.events).where(and(eq(schema.events.id, id), eq(schema.events.playerId, s.pid)));
+  await repo.deleteEvent(s.pid, id);
   revalidatePath("/parent/schedule");
 }

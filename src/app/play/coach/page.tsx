@@ -5,7 +5,7 @@ import { recommendContext, personalBests } from "@/lib/data";
 import { recommend, dateSeed, type RecommendFilter } from "@/lib/recommend";
 import { coachLine } from "@/lib/coachAI";
 import { AREA_LABEL, DRILLS, type Drill } from "@/content/drills";
-import type { Player } from "@/db/schema";
+import type { Player } from "@/db/types";
 
 const ASKS = [
   { key: "batting", label: "Improve my batting", icon: "🏏" },

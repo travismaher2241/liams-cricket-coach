@@ -13,7 +13,7 @@ export interface AnswerHistory {
   questionId: string;
   correct: boolean;
   kind: "weekly" | "practice";
-  attemptId: number;
+  attemptId: string;
   at: Date;
 }
 

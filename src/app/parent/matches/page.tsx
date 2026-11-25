@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
-import { db, schema } from "@/db";
+import { listMatches } from "@/db/repo";
 import { requireParent } from "@/lib/auth";
 import { battingStats, bowlingStats, fieldingStats, fmt, ballsToOvers } from "@/lib/stats";
 import { Section } from "@/components/ui";
@@ -8,7 +7,7 @@ import { Section } from "@/components/ui";
 export default async function Matches({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
   const { saved } = await searchParams;
   const { player } = await requireParent();
-  const ms = await db.select().from(schema.matches).where(eq(schema.matches.playerId, player.id)).orderBy(desc(schema.matches.matchDate));
+  const ms = await listMatches(player.id);
   const b = battingStats(ms), w = bowlingStats(ms), f = fieldingStats(ms);
   return (
     <div className="flex flex-col gap-4">

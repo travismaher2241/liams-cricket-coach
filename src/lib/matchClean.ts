@@ -47,7 +47,7 @@ export function cleanMatch(p: MatchPayload) {
     balls: p.batted ? int(p.balls) : null,
     fours: p.batted ? int(p.fours, 100) : null,
     sixes: p.batted ? int(p.sixes, 100) : null,
-    battingStatus: p.batted ? (p.battingStatus ?? null) : null,
+    battingStatus: p.batted && (["out", "not_out", "retired"] as const).includes(p.battingStatus as "out") ? (p.battingStatus as "out" | "not_out" | "retired") : null,
     howOut: p.batted && p.battingStatus === "out" ? t(p.howOut ?? undefined) : null,
     bowled: !!p.bowled,
     ballsBowled: p.bowled ? int(p.ballsBowled, 600) : null,

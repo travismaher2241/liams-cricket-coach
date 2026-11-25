@@ -1,13 +1,11 @@
 import { redirect } from "next/navigation";
-import { db, schema } from "@/db";
-import { sql } from "drizzle-orm";
+import { countUsers } from "@/db/repo";
 import { SetupForm } from "@/components/AuthForms";
 
 export const dynamic = "force-dynamic";
 
 export default async function Setup() {
-  const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.users);
-  if (n > 0) redirect("/");
+  if ((await countUsers()) > 0) redirect("/");
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-6 px-4 py-10">
       <div>

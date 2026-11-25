@@ -1,11 +1,10 @@
-import { db, schema } from "@/db";
-import { eq } from "drizzle-orm";
+import { getPlayer } from "@/db/repo";
 import { notFound } from "next/navigation";
 import PinPad from "@/components/PinPad";
 
 export default async function PlayerLogin({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [p] = await db.select().from(schema.players).where(eq(schema.players.id, Number(id)));
+  const p = await getPlayer(id);
   if (!p) notFound();
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-4 py-10">

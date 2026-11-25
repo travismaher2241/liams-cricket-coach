@@ -1,8 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq, sql } from "drizzle-orm";
-import { db, schema } from "@/db";
+import * as repo from "@/db/repo";
 import { getSession } from "@/lib/auth";
 import { DRILL_BY_ID } from "@/content/drills";
 import { refreshAchievements } from "@/lib/data";
@@ -15,7 +14,8 @@ async function playerId() {
 
 export async function savePlayerOnboarding(answers: Record<string, string>) {
   const pid = await playerId();
-  await db.update(schema.players).set({ playerAnswers: answers, playerOnboarded: true }).where(eq(schema.players.id, pid));
+  const clean = Object.fromEntries(Object.entries(answers).map(([k, v]) => [k.slice(0, 40), String(v).slice(0, 80)]));
+  await repo.updatePlayer(pid, { playerAnswers: clean, playerOnboarded: true });
   redirect("/play");
 }
 
@@ -37,64 +37,54 @@ export interface ActivityOutcome {
   achievements: { title: string; detail: string }[];
 }
 
+const rating = (n: unknown) => (n === 1 || n === 2 || n === 3 ? n : null);
+
 export async function logActivity(f: ActivityFeedback): Promise<ActivityOutcome> {
   const pid = await playerId();
   const drill = DRILL_BY_ID[f.drillId];
   if (!drill) throw new Error("Unknown drill");
 
   // Link to the active programme whose focus overlaps most with this drill.
-  const progs = await db
-    .select()
-    .from(schema.programmes)
-    .where(and(eq(schema.programmes.playerId, pid), eq(schema.programmes.status, "active")));
-  let programmeId: number | null = null;
+  const progs = await repo.listProgrammes(pid, "active");
+  let programme: (typeof progs)[number] | null = null;
   let bestOverlap = 0;
   for (const p of progs) {
     const o = drill.tags.filter((t) => p.focusTags.includes(t)).length;
     if (o > bestOverlap) {
       bestOverlap = o;
-      programmeId = p.id;
+      programme = p;
     }
   }
 
-  // Personal best check (before insert)
+  // Personal best check (before saving)
   let previousBest: number | null = null;
   let newPB = false;
   const result = typeof f.result === "number" && Number.isFinite(f.result) ? f.result : null;
   if (result !== null && drill.measure) {
-    const agg = drill.measure.higherIsBetter ? sql<number | null>`max(${schema.activities.result})` : sql<number | null>`min(${schema.activities.result})`;
-    const [row] = await db
-      .select({ v: agg })
-      .from(schema.activities)
-      .where(and(eq(schema.activities.playerId, pid), eq(schema.activities.drillId, drill.id)));
-    previousBest = row?.v ?? null;
+    const prev = (await repo.listActivities(pid, { drillId: drill.id })).map((a) => a.result).filter((r): r is number => typeof r === "number");
+    if (prev.length) previousBest = drill.measure.higherIsBetter ? Math.max(...prev) : Math.min(...prev);
     newPB = previousBest === null || (drill.measure.higherIsBetter ? result > previousBest : result < previousBest);
   }
 
-  await db.insert(schema.activities).values({
+  await repo.addActivity(pid, {
     playerId: pid,
     drillId: drill.id,
-    programmeId,
+    programmeId: programme?.id ?? null,
     minutes: Math.max(1, Math.min(120, f.minutes ?? drill.minutes)),
-    difficulty: f.difficulty ?? null,
-    enjoyment: f.enjoyment ?? null,
-    confidence: f.confidence ?? null,
-    again: f.again ?? null,
+    difficulty: rating(f.difficulty),
+    enjoyment: rating(f.enjoyment),
+    confidence: rating(f.confidence),
+    again: typeof f.again === "boolean" ? f.again : null,
     discomfort: !!f.discomfort,
     result,
     isChallenge: !!f.isChallenge,
+    completedAt: new Date(),
   });
 
-  // Programme completion (flexible: based on sessions done, not dates)
-  if (programmeId) {
-    const p = progs.find((x) => x.id === programmeId)!;
-    const [{ n }] = await db
-      .select({ n: sql<number>`count(*)::int` })
-      .from(schema.activities)
-      .where(eq(schema.activities.programmeId, programmeId));
-    if (n >= p.targetSessions) {
-      await db.update(schema.programmes).set({ status: "completed", completedAt: new Date() }).where(eq(schema.programmes.id, programmeId));
-    }
+  // Programme completion is based on sessions done, not dates.
+  if (programme) {
+    const n = (await repo.listActivities(pid, { programmeId: programme.id })).length;
+    if (n >= programme.targetSessions) await repo.updateProgramme(pid, programme.id, { status: "completed", completedAt: new Date() });
   }
 
   const fresh = await refreshAchievements(pid);
@@ -106,16 +96,9 @@ export async function logActivity(f: ActivityFeedback): Promise<ActivityOutcome>
   };
 }
 
-export async function markRevealSeen(programmeId: number) {
+export async function markRevealSeen(programmeId: string) {
   const pid = await playerId();
-  await db
-    .update(schema.programmes)
-    .set({ revealedAt: new Date() })
-    .where(and(eq(schema.programmes.id, programmeId), eq(schema.programmes.playerId, pid)));
+  const p = await repo.getProgramme(pid, programmeId);
+  if (p) await repo.updateProgramme(pid, programmeId, { revealedAt: new Date() });
   redirect("/play/journey");
-}
-
-export async function markAchievementsSeen() {
-  const pid = await playerId();
-  await db.update(schema.achievements).set({ seen: true }).where(eq(schema.achievements.playerId, pid));
 }

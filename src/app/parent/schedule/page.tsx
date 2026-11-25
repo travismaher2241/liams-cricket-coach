@@ -1,5 +1,4 @@
-import { asc, and, eq, gte } from "drizzle-orm";
-import { db, schema } from "@/db";
+import { listEvents } from "@/db/repo";
 import { requireParent } from "@/lib/auth";
 import { addEvent, deleteEvent } from "@/app/actions/parent";
 import { Field, Section } from "@/components/ui";
@@ -8,12 +7,7 @@ const TYPES = { match: "Match", training: "Club training", other_sport: "Other s
 
 export default async function Schedule() {
   const { player } = await requireParent();
-  const events = await db
-    .select()
-    .from(schema.events)
-    .where(and(eq(schema.events.playerId, player.id), gte(schema.events.startsAt, new Date(Date.now() - 86400000))))
-    .orderBy(asc(schema.events.startsAt))
-    .limit(60);
+  const events = (await listEvents(player.id, new Date(Date.now() - 86400000))).slice(0, 60);
   return (
     <div className="flex flex-col gap-4">
       <Section title="Add to the calendar">

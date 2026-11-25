@@ -1,5 +1,4 @@
-import { desc, eq } from "drizzle-orm";
-import { db, schema } from "@/db";
+import { listProgrammes } from "@/db/repo";
 import { requireParent } from "@/lib/auth";
 import { programmeProgress } from "@/lib/data";
 import { startProgramme, setProgrammeStatus, deleteProgramme } from "@/app/actions/parent";
@@ -9,8 +8,8 @@ import { Bar, Field, Section } from "@/components/ui";
 
 export default async function Programmes() {
   const { player } = await requireParent();
-  const progs = await db.select().from(schema.programmes).where(eq(schema.programmes.playerId, player.id)).orderBy(desc(schema.programmes.startedAt));
-  const prog = await programmeProgress(progs.map((p) => p.id));
+  const progs = await listProgrammes(player.id);
+  const prog = await programmeProgress(player.id);
   const active = progs.filter((p) => p.status !== "completed");
   const done = progs.filter((p) => p.status === "completed");
   return (

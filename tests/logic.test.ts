@@ -3,7 +3,7 @@ import { nextLevel, buildWeeklyQuiz, reinforcementConcepts, weekKey, type Answer
 import { CONCEPTS, CONCEPT_BY_ID } from "@/content/quiz";
 import { oversToBalls, ballsToOvers, battingStats, bowlingStats } from "@/lib/stats";
 import { recommend } from "@/lib/recommend";
-import type { Match } from "@/db/schema";
+import type { Match } from "@/db/types";
 
 describe("quiz progression", () => {
   it("75% exactly keeps the level", () => expect(nextLevel(1, 15, 20)).toEqual({ level: 1, levelUp: false }));
@@ -24,7 +24,7 @@ describe("weekly quiz builder", () => {
     const first = buildWeeklyQuiz(1, [], 1);
     const at = new Date("2026-11-20");
     const history: AnswerHistory[] = first.map((q, i) => ({
-      conceptId: q.conceptId, questionId: q.id, correct: i >= 5, kind: "weekly", attemptId: 1, at,
+      conceptId: q.conceptId, questionId: q.id, correct: i >= 5, kind: "weekly", attemptId: "a1", at,
     }));
     const missed = reinforcementConcepts(history);
     expect(missed).toHaveLength(5);
@@ -57,7 +57,7 @@ describe("weekly quiz builder", () => {
 });
 
 const m = (p: Partial<Match>): Match => ({
-  id: 1, playerId: 1, matchDate: "2026-11-01", team: null, opposition: null, competition: null, season: null, format: null, result: null,
+  id: "m1", playerId: "p1", matchDate: "2026-11-01", team: null, opposition: null, competition: null, season: null, format: null, result: null,
   batted: false, runs: null, balls: null, fours: null, sixes: null, battingStatus: null, howOut: null,
   bowled: false, ballsBowled: null, runsConceded: null, wickets: null, maidens: null, wides: null, noBalls: null,
   catches: null, runOuts: null, stumpings: null, isHistorical: false, editedByParent: false, createdAt: new Date(), ...p,

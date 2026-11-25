@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { and, desc, eq, ne } from "drizzle-orm";
-import { db, schema } from "@/db";
+import { listProgrammes, listQuizAttempts } from "@/db/repo";
 import { requireParent } from "@/lib/auth";
 import { programmeProgress, upcomingEvents, weekSummary, recommendContext } from "@/lib/data";
 import { dailyChallenge } from "@/lib/recommend";
@@ -18,19 +17,11 @@ export default async function ParentHome() {
       </Section>
     );
   }
-  const progs = await db
-    .select()
-    .from(schema.programmes)
-    .where(and(eq(schema.programmes.playerId, player.id), ne(schema.programmes.status, "completed")));
-  const prog = await programmeProgress(progs.map((p) => p.id));
+  const progs = (await listProgrammes(player.id)).filter((p) => p.status !== "completed");
+  const prog = await programmeProgress(player.id);
   const w = await weekSummary(player.id);
   const events = await upcomingEvents(player.id, 4);
-  const [lastQuiz] = await db
-    .select()
-    .from(schema.quizAttempts)
-    .where(and(eq(schema.quizAttempts.playerId, player.id), eq(schema.quizAttempts.kind, "weekly")))
-    .orderBy(desc(schema.quizAttempts.completedAt))
-    .limit(1);
+  const [lastQuiz] = await listQuizAttempts(player.id, { kind: "weekly" });
   const ctx = await recommendContext(player);
   const today = dailyChallenge(ctx);
 

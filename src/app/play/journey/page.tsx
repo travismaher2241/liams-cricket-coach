@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { and, desc, eq, isNotNull } from "drizzle-orm";
-import { db, schema } from "@/db";
+import { listAchievements, listMatches, listProgrammes } from "@/db/repo";
 import { requirePlayerView } from "@/lib/auth";
 import { battingStats, bowlingStats, fieldingStats, fmt } from "@/lib/stats";
 import { personalBests, weekSummary } from "@/lib/data";
@@ -85,7 +84,7 @@ export default async function Journey({ searchParams }: { searchParams: Promise<
   }
 
   if (tab === "stats") {
-    const all = await db.select().from(schema.matches).where(eq(schema.matches.playerId, player.id)).orderBy(desc(schema.matches.matchDate));
+    const all = await listMatches(player.id);
     const seasons = [...new Set(all.map((m) => m.season).filter(Boolean))] as string[];
     const ms = sp.season ? all.filter((m) => m.season === sp.season) : all;
     const b = battingStats(ms);
@@ -165,7 +164,7 @@ export default async function Journey({ searchParams }: { searchParams: Promise<
   }
 
   if (tab === "awards") {
-    const achs = await db.select().from(schema.achievements).where(eq(schema.achievements.playerId, player.id)).orderBy(desc(schema.achievements.earnedAt));
+    const achs = await listAchievements(player.id);
     const pbs = await personalBests(player.id);
     const cats = [
       ["match", "Match"],
@@ -215,12 +214,9 @@ export default async function Journey({ searchParams }: { searchParams: Promise<
   }
 
   if (tab === "story") {
-    const progs = await db
-      .select()
-      .from(schema.programmes)
-      .where(and(eq(schema.programmes.playerId, player.id), eq(schema.programmes.status, "completed"), isNotNull(schema.programmes.revealedAt)));
-    const achs = await db.select().from(schema.achievements).where(eq(schema.achievements.playerId, player.id));
-    const ms = await db.select().from(schema.matches).where(eq(schema.matches.playerId, player.id));
+    const progs = (await listProgrammes(player.id, "completed")).filter((p) => p.revealedAt);
+    const achs = await listAchievements(player.id);
+    const ms = await listMatches(player.id);
     type Item = { at: Date; icon: string; text: string };
     const items: Item[] = [
       ...progs.map((p) => ({ at: p.completedAt!, icon: "🏆", text: `Completed a development block: ${p.title}` })),

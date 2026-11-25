@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
-import { and, eq } from "drizzle-orm";
-import { db, schema } from "@/db";
+import { getProgramme, listActivities } from "@/db/repo";
 import { requirePlayerView } from "@/lib/auth";
 import { TEMPLATE_BY_KEY } from "@/content/programmes";
 import { DRILL_BY_ID } from "@/content/drills";
@@ -10,12 +9,9 @@ import { markRevealSeen } from "@/app/actions/player";
 export default async function Reveal({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { player } = await requirePlayerView();
-  const [p] = await db
-    .select()
-    .from(schema.programmes)
-    .where(and(eq(schema.programmes.id, Number(id)), eq(schema.programmes.playerId, player.id), eq(schema.programmes.status, "completed")));
-  if (!p) notFound();
-  const acts = await db.select().from(schema.activities).where(eq(schema.activities.programmeId, p.id));
+  const p = await getProgramme(player.id, id);
+  if (!p || p.status !== "completed") notFound();
+  const acts = await listActivities(player.id, { programmeId: p.id });
   const minutes = acts.reduce((a, b) => a + b.minutes, 0);
   const skills = [...new Set(acts.map((a) => DRILL_BY_ID[a.drillId]?.name).filter(Boolean))];
   const end = p.completedAt ?? new Date();

@@ -1,17 +1,12 @@
 import Link from "next/link";
-import { and, desc, eq } from "drizzle-orm";
-import { db, schema } from "@/db";
+import { listQuizAttempts } from "@/db/repo";
 import { requirePlayerView } from "@/lib/auth";
 import { weekKey } from "@/lib/quizEngine";
 import { levelName, CONCEPTS } from "@/content/quiz";
 
 export default async function Learn() {
   const { player } = await requirePlayerView();
-  const [thisWeek] = await db
-    .select()
-    .from(schema.quizAttempts)
-    .where(and(eq(schema.quizAttempts.playerId, player.id), eq(schema.quizAttempts.kind, "weekly"), eq(schema.quizAttempts.weekKey, weekKey(new Date()))))
-    .orderBy(desc(schema.quizAttempts.completedAt));
+  const [thisWeek] = await listQuizAttempts(player.id, { kind: "weekly", weekKey: weekKey(new Date()) });
   const topics = [...new Set(CONCEPTS.filter((c) => c.level <= player.quizLevel).map((c) => c.topic))];
 
   return (

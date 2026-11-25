@@ -1,18 +1,14 @@
-import { desc, eq, sql } from "drizzle-orm";
-import { db, schema } from "@/db";
+import { listEvents, listMatches } from "@/db/repo";
 import { requirePlayerView } from "@/lib/auth";
 import MatchWizard from "@/components/MatchWizard";
 
 export default async function NewMatch() {
   const { player } = await requirePlayerView();
-  const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.matches).where(eq(schema.matches.playerId, player.id));
+  const n = (await listMatches(player.id)).length;
   // Suggest opposition from the most recent past match event.
-  const [ev] = await db
-    .select()
-    .from(schema.events)
-    .where(sql`${schema.events.playerId} = ${player.id} and ${schema.events.type} = 'match' and ${schema.events.startsAt} <= now() + interval '6 hours'`)
-    .orderBy(desc(schema.events.startsAt))
-    .limit(1);
+  const ev = (await listEvents(player.id, new Date(Date.now() - 4 * 86400000)))
+    .filter((e) => e.type === "match" && e.startsAt.getTime() <= Date.now() + 6 * 3600000)
+    .pop();
   const recent = ev && Date.now() - ev.startsAt.getTime() < 4 * 86400000 ? ev : null;
   return (
     <main className="flex flex-col gap-4">

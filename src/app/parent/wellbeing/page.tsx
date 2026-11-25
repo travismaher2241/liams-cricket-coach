@@ -1,5 +1,4 @@
-import { asc, eq } from "drizzle-orm";
-import { db, schema } from "@/db";
+import { listActivities, listMatchPreps, listMatches, listReflections } from "@/db/repo";
 import { requireParent } from "@/lib/auth";
 import { comfortScore, WINS, WORRIES, Q_BY_ID } from "@/content/reflection";
 import { Bar, Section } from "@/components/ui";
@@ -15,14 +14,16 @@ const GROUPS: [string, string[]][] = [
 
 export default async function Wellbeing() {
   const { player } = await requireParent();
-  const rows = await db
-    .select({ r: schema.reflections, m: schema.matches })
-    .from(schema.reflections)
-    .innerJoin(schema.matches, eq(schema.reflections.matchId, schema.matches.id))
-    .where(eq(schema.reflections.playerId, player.id))
-    .orderBy(asc(schema.matches.matchDate));
-  const preps = await db.select().from(schema.matchPreps).where(eq(schema.matchPreps.playerId, player.id));
-  const acts = await db.select().from(schema.activities).where(eq(schema.activities.playerId, player.id));
+  const [refls, matches, preps, acts] = await Promise.all([
+    listReflections(player.id),
+    listMatches(player.id),
+    listMatchPreps(player.id),
+    listActivities(player.id),
+  ]);
+  const byId = new Map(matches.map((m) => [m.id, m]));
+  const rows = refls
+    .flatMap((r) => (byId.has(r.matchId) ? [{ r, m: byId.get(r.matchId)! }] : []))
+    .sort((a, b) => a.m.matchDate.localeCompare(b.m.matchDate));
 
   const worryCount = new Map<string, number>();
   const winCount = new Map<string, number>();

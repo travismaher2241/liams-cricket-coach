@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { db, schema } from "@/db";
+import { listPlayers } from "@/db/repo";
 import { getSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ export default async function Landing() {
   const s = await getSession();
   if (s?.role === "player") redirect("/play");
   if (s?.role === "parent") redirect("/parent");
-  const players = await db.select({ id: schema.players.id, name: schema.players.displayName }).from(schema.players);
+  const players = (await listPlayers()).map((p) => ({ id: p.id, name: p.displayName }));
   if (!players.length) redirect("/setup");
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-4 py-10">

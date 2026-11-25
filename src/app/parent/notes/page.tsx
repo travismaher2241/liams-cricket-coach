@@ -1,5 +1,4 @@
-import { desc, eq } from "drizzle-orm";
-import { db, schema } from "@/db";
+import { listObservations } from "@/db/repo";
 import { requireParent } from "@/lib/auth";
 import { addObservation, deleteObservation } from "@/app/actions/parent";
 import { AREA_LABEL } from "@/content/drills";
@@ -9,7 +8,7 @@ const KINDS = { observation: "Observation", coach_feedback: "Coach feedback", hi
 
 export default async function Notes() {
   const { player } = await requireParent();
-  const notes = await db.select().from(schema.observations).where(eq(schema.observations.playerId, player.id)).orderBy(desc(schema.observations.createdAt));
+  const notes = await listObservations(player.id);
   return (
     <div className="flex flex-col gap-4">
       <p className="rounded-xl border border-line bg-surface-2 p-3 text-sm text-muted">

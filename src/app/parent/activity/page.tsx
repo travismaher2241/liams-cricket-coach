@@ -1,5 +1,4 @@
-import { desc, eq } from "drizzle-orm";
-import { db, schema } from "@/db";
+import { listActivities } from "@/db/repo";
 import { requireParent } from "@/lib/auth";
 import { personalBests } from "@/lib/data";
 import { DRILL_BY_ID, AREA_LABEL } from "@/content/drills";
@@ -9,7 +8,7 @@ const face = (n: number | null, set: string[]) => (n ? set[n - 1] : "–");
 
 export default async function Activity() {
   const { player } = await requireParent();
-  const acts = await db.select().from(schema.activities).where(eq(schema.activities.playerId, player.id)).orderBy(desc(schema.activities.completedAt)).limit(100);
+  const acts = (await listActivities(player.id)).slice(0, 100);
   const pbs = await personalBests(player.id);
   const total = acts.reduce((a, b) => a + b.minutes, 0);
   const byDrill = new Map<string, { n: number; fun: number[] }>();

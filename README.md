@@ -22,13 +22,13 @@ Excluded per spec: video, PlayHQ integration, voice.
 
 ## Stack
 
-Next.js 15 (App Router, server actions) · Postgres via Drizzle ORM · Tailwind CSS 4 · `@google/genai` for the coach · JWT cookie sessions (parent: email + password; player: tap name + 4-digit PIN).
+Next.js 15 (App Router, server actions) · Firebase Firestore via `firebase-admin` (server-side only) · Tailwind CSS 4 · `@google/genai` for the coach · JWT cookie sessions (parent: email + password; player: tap name + 4-digit PIN).
 
 ## Environment variables
 
 | Name | Purpose |
 | --- | --- |
-| `DATABASE_URL` | Postgres connection string (Neon/Supabase/local) |
+| `FIREBASE_SERVICE_ACCOUNT` | Full service-account JSON from Firebase → Project settings → Service accounts |
 | `SESSION_SECRET` | Long random string used to sign login cookies |
 | `GEMINI_API_KEY` | Optional. Google AI Studio key for coach lines |
 | `GEMINI_MODEL` | Optional. Defaults to `gemini-2.5-flash` |
@@ -37,8 +37,8 @@ Next.js 15 (App Router, server actions) · Postgres via Drizzle ORM · Tailwind 
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in DATABASE_URL and SESSION_SECRET
-npx drizzle-kit push         # create tables
+cp .env.example .env.local   # use the emulator lines, or a service account
+firebase emulators:start --only firestore --project demo-cricket   # in another terminal
 npm run dev
 npm test                     # quiz progression, reinforcement, stats, recommendations
 ```
@@ -51,3 +51,9 @@ Open the app and you'll be sent to `/setup` to create the parent account and the
 - Quiz concepts (each with 2+ wordings): `src/content/quiz.ts`
 - Reflection questions, worries and wins: `src/content/reflection.ts`
 - Programme templates: `src/content/programmes.ts`
+
+## Data & privacy
+
+All reads and writes go through the server with the Admin SDK, so `firestore.rules` denies all direct client access.
+Data lives under `players/{id}/…` sub-collections (activities, matches, reflections, quizAttempts, programmes, observations, events, achievements).
+Parent observations are only read on parent pages and are never sent to Gemini.

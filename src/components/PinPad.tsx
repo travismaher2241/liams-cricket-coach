@@ -3,7 +3,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { playerLogin } from "@/app/actions/auth";
 
-export default function PinPad({ playerId }: { playerId: number }) {
+export default function PinPad({ playerId }: { playerId: string }) {
   const [pin, setPin] = useState("");
   const [msg, setMsg] = useState("");
   const [pending, start] = useTransition();

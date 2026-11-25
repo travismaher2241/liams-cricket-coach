@@ -1,4 +1,4 @@
-import type { Match } from "@/db/schema";
+import type { Match } from "@/db/types";
 
 /** Overs are stored as legal balls. 15 balls -> "2.3". */
 export function ballsToOvers(balls: number): string {

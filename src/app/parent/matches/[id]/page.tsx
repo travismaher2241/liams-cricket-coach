@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
-import { and, eq } from "drizzle-orm";
-import { db, schema } from "@/db";
+import { getMatch, getReflectionForMatch } from "@/db/repo";
 import { requireParent } from "@/lib/auth";
 import MatchForm from "@/components/MatchForm";
 import { Section } from "@/components/ui";
@@ -10,9 +9,9 @@ import { deleteMatch } from "@/app/actions/parent";
 export default async function EditMatch({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { player } = await requireParent();
-  const [m] = await db.select().from(schema.matches).where(and(eq(schema.matches.id, Number(id)), eq(schema.matches.playerId, player.id)));
+  const m = await getMatch(player.id, id);
   if (!m) notFound();
-  const [r] = await db.select().from(schema.reflections).where(eq(schema.reflections.matchId, m.id));
+  const r = await getReflectionForMatch(player.id, m.id);
   return (
     <div className="flex flex-col gap-4">
       {r && (
