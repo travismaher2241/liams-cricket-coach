@@ -10,7 +10,7 @@ export default async function ResetPage({ searchParams }: { searchParams: Promis
   return (
     <main className="flex flex-col gap-4">
       <Link href="/play/mind" className="text-sm text-muted">‹ Back</Link>
-      <p className="label">{m.icon} {m.label}</p>
+      <p className="label">{m.label}</p>
       <ResetFlow what={m.key as ToughMoment} word={player.mindWord ?? null} />
     </main>
   );

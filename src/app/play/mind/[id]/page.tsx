@@ -12,7 +12,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
   return (
     <main className="flex flex-col gap-4">
       <Link href="/play/mind" className="text-sm text-muted">‹ Back</Link>
-      <h1 className="h-display text-3xl">{lesson.icon} {lesson.title}</h1>
+      <h1 className="h-display text-3xl">{lesson.title}</h1>
       <LessonRunner lesson={lesson} word={player.mindWord ?? null} />
     </main>
   );

@@ -1,4 +1,23 @@
 import Link from "next/link";
+import { Activity, Eye, Hand, Pause, PenLine, RotateCcw, ShieldCheck, Target, Users, Wind, type LucideIcon } from "lucide-react";
+
+const ICONS: Record<string, LucideIcon> = {
+  "ok-to-get-out": ShieldCheck,
+  "play-the-ball": Eye,
+  "walk-back": RotateCcw,
+  "hit-for-four": Target,
+  misfields: Hand,
+  nerves: Activity,
+  teammates: Users,
+  "between-balls": Pause,
+  out: RotateCcw,
+  hit: Target,
+  misfield: Hand,
+};
+function Ico({ k }: { k: string }) {
+  const I = ICONS[k] ?? Activity;
+  return <I size={22} strokeWidth={1.75} className="shrink-0 text-turf" aria-hidden />;
+}
 import { requirePlayerView } from "@/lib/auth";
 import { preSessionNote, pushPublicKey, scheduleFor } from "@/lib/mind";
 import { LESSONS, MIND_WORDS, TOUGH_MOMENTS, nextSession, whenLabel } from "@/content/mind";
@@ -45,7 +64,7 @@ export default async function MindPage() {
         <div className="mt-2 grid gap-2">
           {TOUGH_MOMENTS.map((t) => (
             <Link key={t.key} href={`/play/mind/reset?what=${t.key}`} className="choice flex items-center gap-3 !py-3">
-              <span className="text-2xl">{t.icon}</span>
+              <Ico k={t.key} />
               <span className="font-semibold">{t.label}</span>
             </Link>
           ))}
@@ -54,12 +73,12 @@ export default async function MindPage() {
 
       <div className="grid grid-cols-2 gap-3">
         <Link href="/play/mind/breathe" className="card flex flex-col gap-1">
-          <span className="text-2xl">🌬️</span>
+          <Wind size={26} strokeWidth={1.75} className="text-turf" />
           <span className="font-semibold">Calm down</span>
           <span className="text-xs text-muted">1 minute of breathing</span>
         </Link>
         <Link href="/play/mind/thoughts" className="card flex flex-col gap-1">
-          <span className="text-2xl">✏️</span>
+          <PenLine size={26} strokeWidth={1.75} className="text-turf" />
           <span className="font-semibold">My thoughts</span>
           <span className="text-xs text-muted">Only if you want to</span>
         </Link>
@@ -71,7 +90,7 @@ export default async function MindPage() {
           {LESSONS.map((l) => (
             <li key={l.id}>
               <Link href={`/play/mind/${l.id}`} className="choice flex items-center gap-3 !py-3">
-                <span className="text-2xl">{l.icon}</span>
+                <Ico k={l.id} />
                 <span className="flex-1 font-semibold">{l.title}</span>
                 {done.has(l.id) && <span className="text-turf" aria-label="done">✓</span>}
               </Link>

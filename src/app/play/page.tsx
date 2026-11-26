@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BookOpen, ClipboardList, MessageCircle, Timer } from "lucide-react";
 import { redirect } from "next/navigation";
 import { listQuizAttempts } from "@/db/repo";
 import { requirePlayerView } from "@/lib/auth";
@@ -116,22 +117,22 @@ export default async function PlayerHome({ searchParams }: { searchParams: Promi
 
       <div className="grid grid-cols-2 gap-3">
         <Link href="/play/learn" className="card flex flex-col gap-1">
-          <span className="text-2xl">🧠</span>
+          <BookOpen size={26} strokeWidth={1.75} className="text-turf" />
           <span className="font-semibold">{weeklyDone ? "Practice questions" : "Weekly quiz ready"}</span>
           <span className="text-xs text-muted">{weeklyDone ? "Just for fun" : "20 questions, no time limit"}</span>
         </Link>
         <Link href="/play/train?time=5" className="card flex flex-col gap-1">
-          <span className="text-2xl">⏱️</span>
+          <Timer size={26} strokeWidth={1.75} className="text-turf" />
           <span className="font-semibold">I&apos;ve got 5 minutes</span>
           <span className="text-xs text-muted">Quick sessions</span>
         </Link>
         <Link href="/play/review" className="card flex flex-col gap-1">
-          <span className="text-2xl">📝</span>
+          <ClipboardList size={26} strokeWidth={1.75} className="text-turf" />
           <span className="font-semibold">Review a session</span>
           <span className="text-xs text-muted">A match or training</span>
         </Link>
         <Link href="/play/coach" className="card flex flex-col gap-1">
-          <span className="text-2xl">💬</span>
+          <MessageCircle size={26} strokeWidth={1.75} className="text-turf" />
           <span className="font-semibold">Ask the coach</span>
           <span className="text-xs text-muted">Pick what you want</span>
         </Link>

@@ -69,7 +69,7 @@ export default function PushToggle({ compact = false, publicKey }: { compact?: b
       {state === "needs-install" && (
         <p className="mt-1 text-sm text-muted">To get a message from your coach before training and games, add this app to your home screen first (Share, then Add to Home Screen) and open it from there.</p>
       )}
-      {state === "blocked" && <p className="mt-1 text-sm text-muted">Notifications are turned off for this app in your phone&apos;s settings. Ask a grown-up to help turn them on.</p>}
+      {state === "blocked" && <p className="mt-1 text-sm text-muted">Notifications are off for this app. You can turn them on in your phone&apos;s Settings, under Notifications.</p>}
       {state === "off" && (
         <>
           <p className="mt-1 text-sm text-muted">Get a message from your coach on your phone before training and games.</p>
