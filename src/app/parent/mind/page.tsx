@@ -2,7 +2,9 @@ import { requireParent } from "@/lib/auth";
 import { saveMindLines, saveWeeklySchedule } from "@/app/actions/parent";
 import { Section } from "@/components/ui";
 import { scheduleFor } from "@/lib/mind";
-import { DAY_NAMES, LESSONS, NOTE_FALLBACKS, NOTE_LEAD_MIN, formatTime } from "@/content/mind";
+import { listPushSubs, listThoughts } from "@/db/repo";
+import { parentTestPush } from "@/app/actions/parent";
+import { DAY_NAMES, LESSONS, NOTE_FALLBACKS, formatTime } from "@/content/mind";
 
 export default async function MindParent({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
   const { player } = await requireParent();
@@ -10,15 +12,54 @@ export default async function MindParent({ searchParams }: { searchParams: Promi
   const schedule = scheduleFor(player);
   const rows = [...schedule, ...Array.from({ length: Math.max(2, 5 - schedule.length) }, () => null)];
   const done = new Set(player.mindDone ?? []);
+  const [thoughts, subs] = await Promise.all([listThoughts(player.id, 30), listPushSubs(player.id)]);
 
   return (
     <div className="flex flex-col gap-4">
       {saved && <p className="rounded-xl bg-turf/15 px-3 py-2 text-sm text-turf">Saved.</p>}
 
+      <Section title={`${player.displayName}'s thoughts`}>
+        <p className="mb-3 text-sm text-muted">
+          What he writes in his optional &quot;My thoughts&quot; box. The app doesn&apos;t tell him who can read these. His latest thought from the past two weeks helps shape the coach
+          notes, unless it suggests he&apos;s really upset, in which case it&apos;s never sent to the AI and is highlighted here.
+        </p>
+        {thoughts.length === 0 ? (
+          <p className="text-sm text-muted">Nothing yet.</p>
+        ) : (
+          <ul className="flex flex-col gap-2 text-sm">
+            {thoughts.map((t) => (
+              <li key={t.id} className={`rounded-xl p-3 ${t.flagged ? "border border-gold bg-gold/10" : "bg-surface-2"}`}>
+                <span className="block text-xs text-muted">
+                  {t.createdAt.toLocaleString("en-AU", { timeZone: "Australia/Melbourne", weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
+                  {t.flagged && <span className="ml-2 font-semibold text-gold">Worth a gentle chat</span>}
+                </span>
+                <span className="whitespace-pre-wrap">{t.text}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
+
+      <Section title="Phone notifications">
+        {(
+          <>
+            <p className="text-sm text-muted">
+              About 2 hours before each session (Melbourne time), {player.displayName}&apos;s phone gets &quot;A message from your coach&quot;. Tapping it opens the note in the app.
+              The note itself never shows on the lock screen. He turns this on from the Mind tab, on his phone, with the app opened from his home screen.
+            </p>
+            <p className="mt-2 text-sm">Devices signed up: <span className="font-semibold">{subs.length}</span>{subs.length ? ` (${subs.filter((s) => s.role === "player").length} his, ${subs.filter((s) => s.role === "parent").length} from parent preview)` : ""}</p>
+            {subs.length > 0 && (
+              <form action={parentTestPush} className="mt-2"><button className="btn-small">Send a test notification</button></form>
+            )}
+          </>
+        )}
+      </Section>
+
       <Section title="Weekly routine">
         <p className="mb-3 text-sm text-muted">
-          {player.displayName} gets a short positive note in the app from {NOTE_LEAD_MIN / 60} hours before each of these (Melbourne time). Notes are written by Gemini around
-          one calm theme each time (getting out is normal, watch the ball, nerves mean you care, teammates, fresh start), with built-in lines as backup.
+          {player.displayName} gets a short positive note in the app from about 2 hours before each of these (Melbourne time). Gemini writes each note
+          around one calm theme: getting out is normal, getting hit for four or six is the batter&apos;s job, everyone misfields, watch the ball, nerves mean you care, teammates,
+          or a fresh start. If he&apos;s named a favourite cricketer in his setup, notes can mention that even they have those moments. Built-in lines are the backup.
         </p>
         <form action={saveWeeklySchedule} className="flex flex-col gap-2">
           {rows.map((r, i) => (
@@ -62,7 +103,7 @@ export default async function MindParent({ searchParams }: { searchParams: Promi
               {done.has(l.id) && <span className="ml-2 chip">read</span>}
             </li>
           ))}
-          <li>🔄 <span className="font-semibold">“I just got out” reset</span> <span className="text-muted">· breathe, “next time”, cheer your mates, one good thing</span></li>
+          <li>🔄 <span className="font-semibold">Tough moment resets</span> <span className="text-muted">· got out, hit for 4 or 6, or misfielded: a few calm steps for each</span></li>
           <li>🌬️ <span className="font-semibold">Calm breathing</span> <span className="text-muted">· in for 4, out for 6, three rounds</span></li>
         </ul>
         {player.mindWord && <p className="mt-3 text-sm">His reset word: <span className="font-semibold">{player.mindWord}</span></p>}

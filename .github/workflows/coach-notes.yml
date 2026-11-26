@@ -1,0 +1,15 @@
+name: Coach notes
+# Every 30 minutes during Melbourne waking hours, ask the app to send any
+# "message from your coach" notifications that are due. The app decides what
+# is due from the weekly routine and never sends the same session twice.
+on:
+  schedule:
+    - cron: "*/30 0-11,19-23 * * *"
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - run: |
+          curl -fsS --max-time 60 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" https://liams-cricket-coach.vercel.app/api/cron/notes

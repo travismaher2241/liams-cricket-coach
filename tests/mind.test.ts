@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_SCHEDULE, NOTE_FALLBACKS, cleanSchedule, formatTime, nextSession, sessionNow } from "@/content/mind";
+import { DEFAULT_SCHEDULE, LESSONS, NOTE_FALLBACKS, RESET_STEPS, cleanSchedule, formatTime, isDistress, nextSession, sessionDueForPush, sessionNow } from "@/content/mind";
 
 // November = AEDT (UTC+11).
 describe("mind schedule", () => {
-  it("shows the Monday note within 2 hours of training", () => {
+  it("shows the Monday note within 2.5 hours of training", () => {
     const s = sessionNow(DEFAULT_SCHEDULE, new Date("2026-11-30T03:30:00Z")); // Mon 2:30pm
     expect(s?.slot.id).toBe("mon");
     expect(s?.minutesUntil).toBe(90);
-    expect(sessionNow(DEFAULT_SCHEDULE, new Date("2026-11-30T02:30:00Z"))).toBeNull(); // 1:30pm, too early
+    expect(sessionNow(DEFAULT_SCHEDULE, new Date("2026-11-30T01:20:00Z"))).toBeNull(); // 12:20pm, too early
   });
   it("keeps the note a little after the start", () => {
     expect(sessionNow(DEFAULT_SCHEDULE, new Date("2026-12-02T06:20:00Z"))?.slot.kind).toBe("match"); // Wed 5:20pm
@@ -26,5 +26,19 @@ describe("mind schedule", () => {
   });
   it("backup notes avoid negative words", () => {
     for (const t of [...NOTE_FALLBACKS.match, ...NOTE_FALLBACKS.training]) expect(t).not.toMatch(/fail|disappoint|let (\w+ )?down/i);
+  });
+  it("sends the phone notification 30 to 150 minutes before", () => {
+    expect(sessionDueForPush(DEFAULT_SCHEDULE, new Date("2026-12-03T04:15:00Z"))?.slot.id).toBe("thu"); // Thu 3:15pm, 2h before 5:15
+    expect(sessionDueForPush(DEFAULT_SCHEDULE, new Date("2026-12-03T05:55:00Z"))).toBeNull(); // 4:55pm, 20 min before
+    expect(sessionDueForPush(DEFAULT_SCHEDULE, new Date("2026-12-03T03:00:00Z"))).toBeNull(); // 2pm, too early
+  });
+  it("covers bowling and fielding, not just batting", () => {
+    expect(LESSONS.map((l) => l.id)).toEqual(expect.arrayContaining(["ok-to-get-out", "hit-for-four", "misfields"]));
+    expect(Object.keys(RESET_STEPS)).toEqual(["out", "hit", "misfield"]);
+  });
+  it("spots thoughts that need a grown-up, not normal cricket nerves", () => {
+    expect(isDistress("I feel like nobody likes me at cricket")).toBe(true);
+    expect(isDistress("I'm nervous about getting out on Wednesday")).toBe(false);
+    expect(isDistress("I got hit for six and felt bad")).toBe(false);
   });
 });

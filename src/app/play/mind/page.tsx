@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { requirePlayerView } from "@/lib/auth";
-import { preSessionNote, scheduleFor } from "@/lib/mind";
-import { LESSONS, MIND_WORDS, nextSession, whenLabel } from "@/content/mind";
+import { preSessionNote, pushPublicKey, scheduleFor } from "@/lib/mind";
+import { LESSONS, MIND_WORDS, TOUGH_MOMENTS, nextSession, whenLabel } from "@/content/mind";
+import PushToggle from "@/components/PushToggle";
 import { WordPicker } from "@/components/Mind";
 
 export default async function MindPage() {
   const { player } = await requirePlayerView();
-  const [note] = await Promise.all([preSessionNote(player)]);
+  const [note, vapid] = await Promise.all([preSessionNote(player), pushPublicKey()]);
   const next = nextSession(scheduleFor(player));
   const done = new Set(player.mindDone ?? []);
 
@@ -36,19 +37,31 @@ export default async function MindPage() {
       <section className="card border-gold/60">
         <p className="label text-gold">Remember</p>
         <p className="mt-1 text-2xl font-bold leading-snug">It&apos;s OK to get out. It happens to the best of us.</p>
-        <p className="mt-1 text-muted">Your team wants you to have a go and enjoy it.</p>
+        <p className="mt-1 text-muted">Getting hit for four or six, or misfielding, happens to everyone too. They&apos;re all part of the game, and they give you fun things to get better at.</p>
+      </section>
+
+      <section className="card">
+        <p className="label">Tough moment? Tap one</p>
+        <div className="mt-2 grid gap-2">
+          {TOUGH_MOMENTS.map((t) => (
+            <Link key={t.key} href={`/play/mind/reset?what=${t.key}`} className="choice flex items-center gap-3 !py-3">
+              <span className="text-2xl">{t.icon}</span>
+              <span className="font-semibold">{t.label}</span>
+            </Link>
+          ))}
+        </div>
       </section>
 
       <div className="grid grid-cols-2 gap-3">
-        <Link href="/play/mind/reset" className="card flex flex-col gap-1">
-          <span className="text-2xl">🔄</span>
-          <span className="font-semibold">I just got out</span>
-          <span className="text-xs text-muted">The walk-back reset</span>
-        </Link>
         <Link href="/play/mind/breathe" className="card flex flex-col gap-1">
           <span className="text-2xl">🌬️</span>
           <span className="font-semibold">Calm down</span>
           <span className="text-xs text-muted">1 minute of breathing</span>
+        </Link>
+        <Link href="/play/mind/thoughts" className="card flex flex-col gap-1">
+          <span className="text-2xl">✏️</span>
+          <span className="font-semibold">My thoughts</span>
+          <span className="text-xs text-muted">Only if you want to</span>
         </Link>
       </div>
 
@@ -66,6 +79,8 @@ export default async function MindPage() {
           ))}
         </ul>
       </section>
+
+      <PushToggle publicKey={vapid} />
 
       <section className="card">
         <p className="label">My reset word</p>

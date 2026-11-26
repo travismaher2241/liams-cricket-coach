@@ -2,7 +2,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { markLessonDone, setMindWord } from "@/app/actions/player";
-import type { Lesson } from "@/content/mind";
+import { RESET_STEPS, type Lesson, type ToughMoment } from "@/content/mind";
 
 /** One short screen at a time, big Next button. */
 export function LessonRunner({ lesson, word }: { lesson: Lesson; word: string | null }) {
@@ -107,15 +107,9 @@ export function WordPicker({ words, current }: { words: string[]; current: strin
   );
 }
 
-/** The walk-back reset, step by step. */
-export function ResetFlow({ word }: { word: string | null }) {
-  const steps = [
-    { big: "That's OK.", small: "Every batter gets out. Even the best in the world. You had a go." },
-    { big: "One big breath", small: "In through your nose for 4… out through your mouth for 6." },
-    { big: "“Next time.”", small: "Say it to yourself. That innings is finished. The next one is brand new." },
-    { big: "Cheer your mates", small: "Pads off, then clap your teammates on. Being a great teammate counts just as much." },
-    { big: "One good thing", small: "Think of one thing you did well today. A good shot, a good leave, running hard. There's always something." },
-  ];
+/** The reset after a tough moment, step by step. */
+export function ResetFlow({ what, word }: { what: ToughMoment; word: string | null }) {
+  const steps = RESET_STEPS[what];
   const [i, setI] = useState(0);
   const s = steps[i];
   return (
@@ -123,7 +117,7 @@ export function ResetFlow({ word }: { word: string | null }) {
       <div className="card min-h-48 text-center">
         <p className="h-display text-3xl">{s.big}</p>
         <p className="mt-3 text-lg text-muted">{s.small}</p>
-        {i === 2 && word && <p className="mt-3 text-sm">Then your word: <span className="font-semibold">{word}</span></p>}
+        {i === 2 && what !== "misfield" && word && <p className="mt-3 text-sm">Then your word: <span className="font-semibold">{word}</span></p>}
       </div>
       {i < steps.length - 1 ? (
         <button onClick={() => setI(i + 1)} className="btn-primary">Next</button>

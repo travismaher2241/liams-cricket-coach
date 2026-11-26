@@ -186,4 +186,24 @@ export interface MindNote {
   dateKey: string;
   text: string;
   createdAt: Date;
+  pushedAt?: Date | null;
+}
+
+/** Liam's optional thoughts. The parent can read these (Trav's choice); the player page makes no claim either way. */
+export interface Thought {
+  id: string;
+  playerId: string;
+  text: string;
+  /** Contains words that suggest he may be really upset. Highlighted for the parent, never sent to the AI. */
+  flagged: boolean;
+  createdAt: Date;
+}
+
+export interface PushSub {
+  id: string;
+  playerId: string;
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+  role: "player" | "parent";
+  createdAt: Date;
 }

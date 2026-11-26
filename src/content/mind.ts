@@ -25,7 +25,10 @@ export const DEFAULT_SCHEDULE: ScheduleSlot[] = [
 export const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 /** Minutes before a session that its note starts to show, and minutes after the start it stays. */
-export const NOTE_LEAD_MIN = 120;
+export const NOTE_LEAD_MIN = 150;
+/** Phone notifications go out when a session is this many minutes away (checked every 30 min). */
+export const PUSH_FROM_MIN = 30;
+export const PUSH_TO_MIN = 150;
 export const NOTE_TAIL_MIN = 30;
 
 export const MIND_WORDS = ["Watch", "Next ball", "Breathe", "See it, hit it", "Have a go", "Fresh"];
@@ -79,6 +82,31 @@ export const LESSONS: Lesson[] = [
     takeaway: "Breathe. \"Next time.\" Cheer your mates.",
   },
   {
+    id: "hit-for-four",
+    icon: "🎯",
+    title: "Hit for four or six?",
+    steps: [
+      "A batter's whole job is to score runs. So when they hit you for four or six, they're just doing their job.",
+      "It happens to every bowler in the world. The best Test bowlers get hit for six too, and they keep running in.",
+      "Bowlers who take wickets are the ones brave enough to keep bowling their best ball.",
+      "Next ball: breathe, walk back to your mark, pick your spot, and run in.",
+      "Getting hit is a good thing at training. It shows you something to practise, and getting better is the fun part.",
+    ],
+    takeaway: "That's the batter's job. My job is the next ball.",
+  },
+  {
+    id: "misfields",
+    icon: "🧤",
+    title: "Misfields happen",
+    steps: [
+      "Every fielder misfields sometimes. The ball bounces funny, the grass is bumpy, it's quick. It happens to everyone.",
+      "Even the best fielders in the world drop catches and let balls through.",
+      "What great fielders do next: clap their hands, say \"next one\", and get ready again.",
+      "Each misfield shows you something to practise. That's a reason to enjoy training, not a reason to feel bad.",
+    ],
+    takeaway: "Clap, \"next one\", get ready.",
+  },
+  {
     id: "nerves",
     icon: "🦋",
     title: "Nerves mean you care",
@@ -119,6 +147,8 @@ export const LESSON_BY_ID = Object.fromEntries(LESSONS.map((l) => [l.id, l]));
 /** Fallback notes before a session, used when Gemini is unavailable. No "fail"/"disappoint" words. */
 export const NOTE_FALLBACKS: Record<SessionKind, string[]> = {
   match: [
+    "If a batter hits you for four, that's their job. Your job is the next ball. Run in and enjoy it.",
+    "Everyone misfields sometimes, even the best. Clap your hands, say \"next one\", and get ready again.",
     "Game day! Getting out is part of cricket, even for the best. Watch the ball, play your shots and enjoy it.",
     "Your only job today is to watch the ball and have fun with your mates. Whatever happens, you're part of the team.",
     "Every batter gets out. Bradman did 70 times in Tests! So relax, back yourself and play the ball.",
@@ -126,11 +156,43 @@ export const NOTE_FALLBACKS: Record<SessionKind, string[]> = {
     "Play the ball, not the worry. If you get out playing your shot, that's a good out.",
   ],
   training: [
+    "Training is where getting hit for four or misfielding is a good thing. It shows you what to practise next.",
+    "Bowl your best ball today, and if it goes for six, smile and go again. Every bowler gets hit.",
     "Training is the place to try things. Have a go at your shots and see what happens.",
     "Mistakes at training are how you learn. Swing freely, watch the ball and enjoy it.",
     "Today, practise playing your shots with confidence. Getting out in the nets is totally fine.",
     "One focus today: watch the ball right onto the bat. Everything else, just have fun.",
     "You've been working hard. Go and enjoy hitting some balls with your mates.",
+  ],
+};
+
+export type ToughMoment = "out" | "hit" | "misfield";
+
+export const TOUGH_MOMENTS: { key: ToughMoment; icon: string; label: string }[] = [
+  { key: "out", icon: "🏏", label: "I got out" },
+  { key: "hit", icon: "🎯", label: "I got hit for 4 or 6" },
+  { key: "misfield", icon: "🧤", label: "I misfielded or dropped one" },
+];
+
+export const RESET_STEPS: Record<ToughMoment, { big: string; small: string }[]> = {
+  out: [
+    { big: "That's OK.", small: "Every batter gets out. Even the best in the world. You had a go." },
+    { big: "One big breath", small: "In through your nose for 4… out through your mouth for 6." },
+    { big: "“Next time.”", small: "Say it to yourself. That innings is finished. The next one is brand new." },
+    { big: "Cheer your mates", small: "Pads off, then clap your teammates on. Being a great teammate counts just as much." },
+    { big: "One good thing", small: "Think of one thing you did well today. A good shot, a good leave, running hard. There's always something." },
+  ],
+  hit: [
+    { big: "That's their job!", small: "A batter's job is to score runs. Every bowler in the world gets hit for four and six." },
+    { big: "One big breath", small: "In through your nose for 4… out through your mouth for 6, on the walk back to your mark." },
+    { big: "“Next ball.”", small: "That ball is finished. Pick your spot for the next one." },
+    { big: "Run in and back yourself", small: "Brave bowlers take wickets. Bowl your best ball." },
+  ],
+  misfield: [
+    { big: "Happens to everyone", small: "Every fielder misfields and drops catches sometimes, even the best in the world." },
+    { big: "Clap it off", small: "Clap your hands once and say “next one”." },
+    { big: "Get ready again", small: "Walk in with the bowler, low and ready. You want the next one to come to you." },
+    { big: "Something to practise", small: "That's a reason to enjoy training. Getting better is the fun part." },
   ],
 };
 
@@ -216,3 +278,25 @@ export function cleanSchedule(raw: unknown): ScheduleSlot[] {
     }))
     .slice(0, 14);
 }
+
+/** Session whose phone notification is due now (PUSH_FROM_MIN..PUSH_TO_MIN before start). */
+export function sessionDueForPush(schedule: ScheduleSlot[], now = new Date()) {
+  const n = melbNow(now);
+  for (const s of schedule) {
+    if (s.day !== n.day) continue;
+    const delta = slotMinutes(s.time) - n.minutes;
+    if (delta >= PUSH_FROM_MIN && delta <= PUSH_TO_MIN) return { slot: s, minutesUntil: delta, dateKey: n.dateKey };
+  }
+  return null;
+}
+
+/** Words that suggest more than cricket nerves. Such thoughts are never sent to the AI. */
+const DISTRESS = [/kill/i, /suicid/i, /hurt (my|me|him|her)self/i, /self[- ]?harm/i, /want to die/i, /wanna die/i, /hate (my ?self|me)/i, /no one likes me/i, /nobody likes me/i, /bullied|bully|bullies/i, /cut(ting)? myself/i, /end it/i];
+export const isDistress = (t: string) => DISTRESS.some((r) => r.test(t));
+
+export const THOUGHT_PROMPTS = [
+  "What's on your mind about cricket?",
+  "How are you feeling about your next game?",
+  "Anything worrying you a bit?",
+  "What went well this week?",
+];

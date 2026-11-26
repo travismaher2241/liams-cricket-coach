@@ -7,6 +7,8 @@ import type {
   Match,
   MatchPrep,
   MindNote,
+  PushSub,
+  Thought,
   Observation,
   Player,
   Programme,
@@ -214,3 +216,30 @@ export async function insertNewAchievements(pid: string, earned: Omit<Achievemen
 // ---- Mind notes (cached pre-session notes)
 export const getMindNote = (pid: string, id: string) => one<MindNote>(sub(pid, "mindNotes").doc(id));
 export const setMindNote = (pid: string, id: string, n: NoId<MindNote>) => sub(pid, "mindNotes").doc(id).set(n);
+export const markMindNotePushed = (pid: string, id: string) => sub(pid, "mindNotes").doc(id).update({ pushedAt: new Date() });
+
+// ---- Thoughts (Liam's optional text box)
+export async function listThoughts(pid: string, limit = 50) {
+  return (await all<Thought>(sub(pid, "thoughts"))).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, limit);
+}
+export const addThought = (pid: string, t: NoId<Thought>) => sub(pid, "thoughts").add(t);
+export const deleteThought = (pid: string, id: string) => sub(pid, "thoughts").doc(id).delete();
+
+// ---- Push subscriptions (doc id = hash of endpoint)
+export const listPushSubs = (pid: string) => all<PushSub>(sub(pid, "pushSubs"));
+export const setPushSub = (pid: string, id: string, p: NoId<PushSub>) => sub(pid, "pushSubs").doc(id).set(p);
+export const deletePushSub = (pid: string, id: string) => sub(pid, "pushSubs").doc(id).delete();
+
+// ---- Server-only app config (Firestore rules deny all client access)
+export async function getOrCreateConfig<T extends object>(name: string, make: () => T): Promise<T> {
+  const ref = db().collection("config").doc(name);
+  const snap = await ref.get();
+  if (snap.exists) return snap.data() as T;
+  const fresh = make();
+  try {
+    await ref.create(fresh);
+    return fresh;
+  } catch {
+    return (await ref.get()).data() as T; // another request created it first
+  }
+}

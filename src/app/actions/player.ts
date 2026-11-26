@@ -5,6 +5,8 @@ import * as repo from "@/db/repo";
 import { getSession } from "@/lib/auth";
 import { DRILL_BY_ID } from "@/content/drills";
 import { refreshAchievements } from "@/lib/data";
+import { createHash } from "node:crypto";
+import { isDistress } from "@/content/mind";
 
 async function playerId() {
   const s = await getSession();
@@ -116,4 +118,45 @@ export async function markLessonDone(lessonId: string) {
   const done = new Set(p.mindDone ?? []);
   done.add(String(lessonId).slice(0, 40));
   await repo.updatePlayer(pid, { mindDone: [...done] });
+}
+
+export async function savePushSub(sub: { endpoint: string; keys: { p256dh: string; auth: string } }) {
+  const s = await getSession();
+  if (!s) redirect("/");
+  if (!sub?.endpoint?.startsWith("https://") || !sub.keys?.p256dh || !sub.keys?.auth) return { ok: false };
+  const id = createHash("sha256").update(sub.endpoint).digest("hex").slice(0, 40);
+  await repo.setPushSub(s.pid, id, {
+    playerId: s.pid,
+    endpoint: sub.endpoint.slice(0, 1000),
+    keys: { p256dh: sub.keys.p256dh.slice(0, 200), auth: sub.keys.auth.slice(0, 100) },
+    role: s.role === "parent" ? "parent" : "player",
+    createdAt: new Date(),
+  });
+  return { ok: true };
+}
+
+export async function removePushSub(endpoint: string) {
+  const pid = await playerId();
+  await repo.deletePushSub(pid, createHash("sha256").update(String(endpoint)).digest("hex").slice(0, 40));
+}
+
+export async function sendTestPush() {
+  const pid = await playerId();
+  const { pushToPlayer } = await import("@/lib/mind");
+  return pushToPlayer(pid, { title: "A message from your coach", body: "Coach messages are on 👍 You'll get one before training and games.", url: "/play/mind", tag: "test" });
+}
+
+export async function addThought(fd: FormData) {
+  const pid = await playerId();
+  const text = String(fd.get("text") ?? "").trim().slice(0, 1000);
+  if (!text) return;
+  await repo.addThought(pid, { playerId: pid, text, flagged: isDistress(text), createdAt: new Date() });
+  revalidatePath("/play/mind/thoughts");
+  redirect("/play/mind/thoughts?saved=1");
+}
+
+export async function deleteMyThought(id: string) {
+  const pid = await playerId();
+  await repo.deleteThought(pid, String(id));
+  revalidatePath("/play/mind/thoughts");
 }
