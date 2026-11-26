@@ -102,3 +102,18 @@ export async function markRevealSeen(programmeId: string) {
   if (p) await repo.updateProgramme(pid, programmeId, { revealedAt: new Date() });
   redirect("/play/journey");
 }
+
+export async function setMindWord(word: string) {
+  const pid = await playerId();
+  await repo.updatePlayer(pid, { mindWord: String(word).trim().slice(0, 30) || null });
+  revalidatePath("/play/mind");
+}
+
+export async function markLessonDone(lessonId: string) {
+  const pid = await playerId();
+  const p = await repo.getPlayer(pid);
+  if (!p) return;
+  const done = new Set(p.mindDone ?? []);
+  done.add(String(lessonId).slice(0, 40));
+  await repo.updatePlayer(pid, { mindDone: [...done] });
+}

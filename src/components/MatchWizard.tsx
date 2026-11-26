@@ -157,6 +157,7 @@ export default function MatchWizard({ defaults, matchNumber }: { defaults: { tea
           </div>
           {m.battingStatus === "out" && (
             <>
+              <p className="rounded-xl bg-turf/10 p-3 text-base">Getting out is part of cricket. It happens to every batter, even the best in the world. 🌱</p>
               <p className="label mt-2">How? (if you know)</p>
               <div className="grid grid-cols-3 gap-2">
                 {["Bowled", "Caught", "LBW", "Run out", "Stumped", "Other"].map((h) => (

@@ -17,7 +17,7 @@ Rules you must always follow:
 - Never give medical or psychological advice. If something hurts, say to rest and tell a grown-up.
 - You complement the player's real coaches; don't contradict them.`;
 
-const BANNED = [/fail/i, /behind/i, /work harder/i, /not good enough/i, /poor/i, /weakness/i, /streak/i, /should have/i, /disappoint/i, /worse/i, /target you missed/i];
+const BANNED = [/fail/i, /behind/i, /work harder/i, /not good enough/i, /poor/i, /weakness/i, /streak/i, /should have/i, /disappoint/i, /worse/i, /target you missed/i, /let (you |your \w+ |them |anyone |the team |everyone )?down/i];
 
 export function isSafeLine(s: string) {
   return s.length > 0 && s.length < 300 && !BANNED.some((r) => r.test(s));

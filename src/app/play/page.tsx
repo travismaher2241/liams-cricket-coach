@@ -7,6 +7,7 @@ import { personalBests, recentAchievements, recommendContext, upcomingEvents, pe
 import { weekKey } from "@/lib/quizEngine";
 import { fallbackHello } from "@/lib/coachAI";
 import { AREA_LABEL } from "@/content/drills";
+import { preSessionNote } from "@/lib/mind";
 
 export default async function PlayerHome({ searchParams }: { searchParams: Promise<{ skip?: string }> }) {
   const { player, session } = await requirePlayerView();
@@ -16,11 +17,12 @@ export default async function PlayerHome({ searchParams }: { searchParams: Promi
   const ctx = await recommendContext(player);
   const challenge = dailyChallenge(ctx);
   const focusDrill = ctx.programmeTags.length ? recommend(ctx, {}, dateSeed(new Date(), 7))[0] : null;
-  const [achs, pbs, events, reveals] = await Promise.all([
+  const [achs, pbs, events, reveals, note] = await Promise.all([
     recentAchievements(player.id, 3),
     personalBests(player.id),
     upcomingEvents(player.id, 2),
     pendingReveals(player.id),
+    preSessionNote(player),
   ]);
   const [weeklyDone] = await listQuizAttempts(player.id, { kind: "weekly", weekKey: weekKey(new Date()) });
   const nextMatch = events.find((e) => e.type === "match");
@@ -32,6 +34,16 @@ export default async function PlayerHome({ searchParams }: { searchParams: Promi
         <p className="label">G&apos;day {player.displayName}</p>
         <h1 className="h-display text-3xl leading-tight">{fallbackHello(dateSeed(new Date()))}</h1>
       </header>
+
+      {note && (
+        <Link href="/play/mind" className="card border-turf/60 bg-turf/10">
+          <p className="label text-turf">
+            {note.minutesUntil > 0 ? `${note.slot.title} soon` : note.slot.title} · a note for you
+          </p>
+          <p className="mt-1 text-xl font-semibold leading-snug">{note.text}</p>
+          <p className="mt-2 text-sm text-muted">It&apos;s OK to get out. Watch the ball and enjoy it. 🌱</p>
+        </Link>
+      )}
 
       {reveals.map((r) => (
         <Link key={r.id} href={`/play/reveal/${r.id}`} className="card border-gold bg-gold/10">

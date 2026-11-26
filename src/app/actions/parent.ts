@@ -8,6 +8,7 @@ import { TEMPLATE_BY_KEY } from "@/content/programmes";
 import { oversToBalls } from "@/lib/stats";
 import { cleanMatch } from "@/lib/matchClean";
 import { refreshAchievements } from "@/lib/data";
+import { cleanSchedule } from "@/content/mind";
 
 async function parent() {
   const s = await getSession();
@@ -201,4 +202,30 @@ export async function deleteEvent(id: string) {
   const s = await parent();
   await repo.deleteEvent(s.pid, id);
   revalidatePath("/parent/schedule");
+}
+
+export async function saveWeeklySchedule(fd: FormData) {
+  const s = await parent();
+  const rows = [];
+  for (let i = 0; i < 8; i++) {
+    const day = str(fd, `day_${i}`);
+    const time = str(fd, `time_${i}`);
+    if (day === null || !time) continue;
+    rows.push({ id: str(fd, `id_${i}`) || `s${Date.now().toString(36)}${i}`, day: Number(day), time, kind: str(fd, `kind_${i}`), title: str(fd, `title_${i}`) });
+  }
+  await repo.updatePlayer(s.pid, { weeklySchedule: cleanSchedule(rows) });
+  revalidatePath("/parent/mind");
+  redirect("/parent/mind?saved=1");
+}
+
+export async function saveMindLines(fd: FormData) {
+  const s = await parent();
+  const lines = String(fd.get("lines") ?? "")
+    .split("\n")
+    .map((l) => l.trim().slice(0, 240))
+    .filter(Boolean)
+    .slice(0, 30);
+  await repo.updatePlayer(s.pid, { mindLines: lines });
+  revalidatePath("/parent/mind");
+  redirect("/parent/mind?saved=1");
 }

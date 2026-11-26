@@ -9,6 +9,7 @@ const LINKS = [
   ["/parent/matches", "Matches"],
   ["/parent/schedule", "Schedule"],
   ["/parent/iq", "Cricket IQ"],
+  ["/parent/mind", "Mental coaching"],
   ["/parent/wellbeing", "Confidence & enjoyment"],
   ["/parent/activity", "Training"],
   ["/parent/profile", "Profile & setup"],

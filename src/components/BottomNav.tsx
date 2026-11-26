@@ -6,6 +6,7 @@ const TABS = [
   { href: "/play", label: "Home", icon: "🏠" },
   { href: "/play/train", label: "Train", icon: "🏏" },
   { href: "/play/learn", label: "Learn", icon: "🧠" },
+  { href: "/play/mind", label: "Mind", icon: "🌱" },
   { href: "/play/journey", label: "Journey", icon: "🏆" },
   { href: "/play/coach", label: "Coach", icon: "💬" },
 ];
@@ -14,7 +15,7 @@ export default function BottomNav() {
   const path = usePathname();
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-pitch/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
-      <ul className="mx-auto grid max-w-md grid-cols-5">
+      <ul className="mx-auto grid max-w-md grid-cols-6">
         {TABS.map((t) => {
           const on = t.href === "/play" ? path === "/play" : path.startsWith(t.href);
           return (

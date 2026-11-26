@@ -6,6 +6,7 @@ import type {
   CalEvent,
   Match,
   MatchPrep,
+  MindNote,
   Observation,
   Player,
   Programme,
@@ -209,3 +210,7 @@ export async function insertNewAchievements(pid: string, earned: Omit<Achievemen
   await batch.commit();
   return out;
 }
+
+// ---- Mind notes (cached pre-session notes)
+export const getMindNote = (pid: string, id: string) => one<MindNote>(sub(pid, "mindNotes").doc(id));
+export const setMindNote = (pid: string, id: string, n: NoId<MindNote>) => sub(pid, "mindNotes").doc(id).set(n);

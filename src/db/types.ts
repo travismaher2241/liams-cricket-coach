@@ -1,3 +1,4 @@
+import type { ScheduleSlot } from "@/content/mind";
 /** Data shapes stored in Firestore. Dates are converted to JS Date on read. */
 
 export interface User {
@@ -32,6 +33,14 @@ export interface Player {
   quizLevel: number;
   season: string | null;
   seasonPhase: "pre" | "in" | "off";
+  /** Weekly training/game times (Melbourne). Missing = DEFAULT_SCHEDULE. */
+  weeklySchedule?: ScheduleSlot[] | null;
+  /** Liam's own reset word, picked by him. */
+  mindWord?: string | null;
+  /** Mind lessons Liam has finished. */
+  mindDone?: string[];
+  /** Encouraging lines the parent writes FOR Liam. These ARE shown to him. */
+  mindLines?: string[];
   createdAt: Date;
 }
 
@@ -167,4 +176,14 @@ export interface Achievement {
   category: "match" | "development" | "iq" | "confidence";
   earnedAt: Date;
   seen: boolean;
+}
+
+/** Cached pre-session note. Doc id = `${dateKey}-${slotId}`. */
+export interface MindNote {
+  id: string;
+  playerId: string;
+  slotId: string;
+  dateKey: string;
+  text: string;
+  createdAt: Date;
 }
