@@ -168,12 +168,12 @@ export async function saveCheckin(input: { slotId: string; feeling: number | nul
   const { scheduleFor } = await import("@/lib/mind");
   const slot = scheduleFor(p).find((s) => s.id === input.slotId);
   const dateKey = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
-  const id = `${dateKey}-${slot?.id ?? "extra"}`;
+  const id = slot ? `${dateKey}-${slot.id}` : `${dateKey}-extra-${Date.now().toString(36)}`;
   const pick = (xs: unknown, ok: string[]) => (Array.isArray(xs) ? xs.map(String).filter((x) => ok.includes(x)) : []);
   await repo.setSessionLog(pid, id, {
     playerId: pid,
     slotId: slot?.id ?? "extra",
-    title: slot?.title ?? "Training",
+    title: slot?.title ?? "Other practice",
     dateKey,
     feeling: [1, 2, 3, 4].includes(Number(input.feeling)) ? Number(input.feeling) : null,
     worked: pick(input.worked, CHECKIN_AREAS),

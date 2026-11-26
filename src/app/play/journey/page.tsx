@@ -103,7 +103,7 @@ export default async function Journey({ searchParams }: { searchParams: Promise<
         {ms.length === 0 ? (
           <div className="card">
             <p className="text-lg">No matches recorded yet.</p>
-            <Link href="/play/match/new" className="btn-primary mt-3 w-full">Record a match</Link>
+            <Link href="/play/match/new" className="btn-primary mt-3 w-full">Review a match</Link>
           </div>
         ) : (
           <>

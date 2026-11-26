@@ -59,7 +59,7 @@ export default async function PlayerHome({ searchParams }: { searchParams: Promi
         <Link href={ended.slot.kind === "match" ? "/play/match/new" : `/play/after?slot=${encodeURIComponent(ended.slot.id)}`} className="card border-sky bg-sky/10">
           <p className="label text-sky">{ended.slot.kind === "match" ? "After the game" : "After training"}</p>
           <p className="mt-1 text-xl font-bold">{ended.slot.kind === "match" ? "How did the game go?" : `How was ${ended.slot.title.toLowerCase()}?`}</p>
-          <p className="text-sm text-muted">{ended.slot.kind === "match" ? "Record your game →" : "Add your training update. It takes a minute →"}</p>
+          <p className="text-sm text-muted">{ended.slot.kind === "match" ? "Review your game →" : "Review your training. It takes a minute →"}</p>
         </Link>
       )}
 
@@ -125,10 +125,10 @@ export default async function PlayerHome({ searchParams }: { searchParams: Promi
           <span className="font-semibold">I&apos;ve got 5 minutes</span>
           <span className="text-xs text-muted">Quick sessions</span>
         </Link>
-        <Link href="/play/match/new" className="card flex flex-col gap-1">
+        <Link href="/play/review" className="card flex flex-col gap-1">
           <span className="text-2xl">📝</span>
-          <span className="font-semibold">Record a match</span>
-          <span className="text-xs text-muted">Stats + how it felt</span>
+          <span className="font-semibold">Review a session</span>
+          <span className="text-xs text-muted">A match or training</span>
         </Link>
         <Link href="/play/coach" className="card flex flex-col gap-1">
           <span className="text-2xl">💬</span>

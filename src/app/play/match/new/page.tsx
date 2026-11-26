@@ -12,7 +12,7 @@ export default async function NewMatch() {
   const recent = ev && Date.now() - ev.startsAt.getTime() < 4 * 86400000 ? ev : null;
   return (
     <main className="flex flex-col gap-4">
-      <h1 className="h-display text-3xl">Record a match</h1>
+      <h1 className="h-display text-3xl">Review a match</h1>
       <MatchWizard
         matchNumber={n + 1}
         defaults={{

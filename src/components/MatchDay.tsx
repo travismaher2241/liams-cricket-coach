@@ -82,7 +82,7 @@ export default function MatchDay({ eventId, title, battingFocus }: { eventId: st
         <Link href="/play/drill/mobility-flow" className="btn-ghost">5-minute warm-up</Link>
         <Link href="/play/mind/breathe" className="btn-ghost">Calm breathing</Link>
         <Link href="/play/mind" className="btn-ghost">Tough moment? Out, hit for six or a misfield</Link>
-        <Link href="/play/match/new" className="btn-ghost">After the game: record it</Link>
+        <Link href="/play/match/new" className="btn-ghost">After the game: review it</Link>
       </section>
       <p className="text-center text-sm text-muted">Getting out, a bad ball or a dropped catch happens to every cricketer. Enjoy your cricket!</p>
     </main>
