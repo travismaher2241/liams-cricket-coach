@@ -51,7 +51,7 @@ export default async function PlayerHome({ searchParams }: { searchParams: Promi
             {note.minutesUntil > 0 ? `${note.slot.title} soon` : note.slot.title} · a note for you
           </p>
           <p className="mt-1 text-xl font-semibold leading-snug">{note.text}</p>
-          <p className="mt-2 text-sm text-muted">Out, hit for six, misfield: it happens to everyone. Enjoy it. 🌱</p>
+          <p className="mt-2 text-sm text-muted">Out, hit for six, misfield: it happens to everyone. Enjoy it.</p>
         </Link>
       )}
 
@@ -66,7 +66,7 @@ export default async function PlayerHome({ searchParams }: { searchParams: Promi
       {reveals.map((r) => (
         <Link key={r.id} href={`/play/reveal/${r.id}`} className="card border-gold bg-gold/10">
           <p className="label text-gold">Something to see</p>
-          <p className="mt-1 text-xl font-bold">You&apos;ve unlocked a big achievement 🎉</p>
+          <p className="mt-1 text-xl font-bold">You&apos;ve unlocked a big achievement</p>
           <p className="text-sm text-muted">Tap to see what your challenges have been building.</p>
         </Link>
       ))}
@@ -101,7 +101,7 @@ export default async function PlayerHome({ searchParams }: { searchParams: Promi
       )}
       {skip && (
         <section className="card">
-          <p className="text-lg font-semibold">No worries 👍</p>
+          <p className="text-lg font-semibold">No worries</p>
           <p className="text-muted">Rest is part of training too. Enjoy your day!</p>
         </section>
       )}

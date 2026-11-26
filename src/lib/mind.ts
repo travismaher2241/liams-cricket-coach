@@ -144,8 +144,8 @@ export async function sendDueNotes(now = new Date()) {
         const sent = await pushToPlayer(
           p.id,
           after.slot.kind === "match"
-            ? { title: "How did the game go? 🏏", body: "Tap to record your game. Stats and how it felt, whenever you're ready.", url: "/play/match/new", tag: flag }
-            : { title: `How was ${after.slot.title.toLowerCase()}? 🏏`, body: "Tap to add your training update. It only takes a minute.", url: `/play/after?slot=${encodeURIComponent(after.slot.id)}`, tag: flag },
+            ? { title: "How did the game go?", body: "Tap to record your game. Stats and how it felt, whenever you're ready.", url: "/play/match/new", tag: flag }
+            : { title: `How was ${after.slot.title.toLowerCase()}?`, body: "Tap to add your training update. It only takes a minute.", url: `/play/after?slot=${encodeURIComponent(after.slot.id)}`, tag: flag },
         );
         if (sent > 0) await repo.setFlag(p.id, flag); // no phone signed up yet: try again next run
         out.push({ player: p.id, slot: `after-${after.slot.id}`, sent });
@@ -158,7 +158,7 @@ export async function sendDueNotes(now = new Date()) {
     const before = due.slot.kind === "match" ? "your game" : due.slot.title.toLowerCase();
     const sent = await pushToPlayer(p.id, {
       title: "A message from your coach",
-      body: `Before ${before} today. Tap to read it 🌱`,
+      body: `Before ${before} today. Tap to read it.`,
       url: "/play/mind",
       tag: note.id,
     });

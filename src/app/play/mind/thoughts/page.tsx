@@ -22,7 +22,7 @@ export default async function ThoughtsPage({ searchParams }: { searchParams: Pro
 
       {saved && (
         <div className="card border-turf/60 bg-turf/10">
-          <p className="font-semibold">Thanks for sharing 👍</p>
+          <p className="font-semibold">Thanks for sharing.</p>
           {latestUpset && <p className="mt-1">If something is really bothering you, please talk to Mum or Dad or another grown-up you trust. They&apos;d really want to know.</p>}
         </div>
       )}

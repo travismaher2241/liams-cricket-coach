@@ -233,6 +233,6 @@ export async function saveMindLines(fd: FormData) {
 export async function parentTestPush() {
   const s = await parent();
   const { pushToPlayer } = await import("@/lib/mind");
-  await pushToPlayer(s.pid, { title: "A message from your coach", body: "This is a test. Tap to open the Mind tab 🌱", url: "/play/mind", tag: "test" });
+  await pushToPlayer(s.pid, { title: "A message from your coach", body: "This is a test. Tap to open the Mind tab.", url: "/play/mind", tag: "test" });
   redirect("/parent/mind?saved=1");
 }

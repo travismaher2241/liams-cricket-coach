@@ -19,7 +19,7 @@ export function LessonRunner({ lesson, word }: { lesson: Lesson; word: string | 
         <p className="mt-2 text-2xl font-bold leading-snug">“{lesson.takeaway}”</p>
         {lesson.id === "between-balls" && word && <p className="mt-2 text-muted">Your word: <span className="font-semibold text-ink">{word}</span></p>}
         <div className="mt-4 grid gap-2">
-          <Link href="/play/mind" className="btn-primary">Done 👍</Link>
+          <Link href="/play/mind" className="btn-primary">Done</Link>
           <button onClick={() => setI(0)} className="btn-ghost text-base">Read it again</button>
         </div>
       </section>
@@ -73,7 +73,7 @@ export function Breathe({ rounds = 3, onDone }: { rounds?: number; onDone?: () =
         }}
       >
         <span className="text-lg font-semibold">
-          {finished ? "Nice 😌" : running ? (<>{breathingIn ? "Breathe in" : "Breathe out"}<br /><span className="text-3xl">{count}</span></>) : "Ready?"}
+          {finished ? "Nice" : running ? (<>{breathingIn ? "Breathe in" : "Breathe out"}<br /><span className="text-3xl">{count}</span></>) : "Ready?"}
         </span>
       </div>
       {!running && (
@@ -123,7 +123,7 @@ export function ResetFlow({ what, word }: { what: ToughMoment; word: string | nu
         <button onClick={() => setI(i + 1)} className="btn-primary">Next</button>
       ) : (
         <div className="grid gap-2">
-          <Link href="/play" className="btn-primary">I&apos;m good 👍</Link>
+          <Link href="/play" className="btn-primary">I&apos;m good</Link>
           <button onClick={() => setI(0)} className="btn-ghost text-base">Start again</button>
         </div>
       )}

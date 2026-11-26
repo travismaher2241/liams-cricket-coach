@@ -21,9 +21,9 @@ export default async function DrillPage({ params, searchParams }: { params: Prom
 
       {(d.needsAdult || d.needsPartner || d.safety) && (
         <div className="rounded-xl border border-gold/50 bg-gold/10 p-3 text-sm">
-          {d.needsAdult && <p className="font-semibold text-gold">👋 Ask an adult to help with this one.</p>}
-          {d.needsPartner && !d.needsAdult && <p className="font-semibold text-gold">👋 You need a partner for this one.</p>}
-          {d.safety && <p>🛡️ {d.safety}</p>}
+          {d.needsAdult && <p className="font-semibold text-gold">Ask an adult to help with this one.</p>}
+          {d.needsPartner && !d.needsAdult && <p className="font-semibold text-gold">You need a partner for this one.</p>}
+          {d.safety && <p>Safety: {d.safety}</p>}
         </div>
       )}
 

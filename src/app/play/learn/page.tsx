@@ -21,7 +21,7 @@ export default async function Learn() {
       {thisWeek ? (
         <section className="card">
           <p className="label">This week&apos;s quiz</p>
-          <p className="mt-1 text-lg font-semibold">Done! ✅ {thisWeek.score} right this week</p>
+          <p className="mt-1 text-lg font-semibold">Done: {thisWeek.score} right this week</p>
           <p className="text-sm text-muted">A new quiz arrives on Monday. Want some practice for fun?</p>
           <Link href="/play/learn/practice" className="btn-primary mt-3 w-full">5 practice questions</Link>
         </section>

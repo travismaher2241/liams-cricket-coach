@@ -18,7 +18,7 @@ export default function QuizRunner({ questions, kind }: { questions: QuizQuestio
   if (result) {
     return (
       <section className="card flex flex-col items-center gap-3 text-center">
-        <div className="text-5xl">{result.levelUp ? "🚀" : "🧠"}</div>
+        
         <h2 className="h-display text-3xl">{result.levelUp ? "Level up!" : "Quiz done!"}</h2>
         <p className="text-lg">
           <b>{result.score}</b> right{result.total - result.score > 0 ? <> and <b>{result.total - result.score}</b> new things learned</> : " (every single one!)"}
@@ -77,7 +77,7 @@ export default function QuizRunner({ questions, kind }: { questions: QuizQuestio
       </div>
       {answered && (
         <div className={`card ${correct ? "border-turf/60" : "border-sky/60"}`}>
-          <p className="font-bold">{correct ? "✅ Yes!" : "💡 Good thinking. Here's the answer:"}</p>
+          <p className="font-bold">{correct ? "Yes!" : "Good thinking. Here's the answer:"}</p>
           <p className="mt-1">{q.why}</p>
           {q.alsoOk && q.alsoOk.length > 0 && <p className="mt-1 text-sm text-muted">In cricket there isn&apos;t always one right answer.</p>}
         </div>

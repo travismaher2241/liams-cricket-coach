@@ -70,7 +70,7 @@ export default async function Journey({ searchParams }: { searchParams: Promise<
         {w.quizzes.filter((q) => q.kind === "weekly").map((q) => (
           <div key={q.id} className="card">
             <p className="label">Cricket IQ</p>
-            <p className="mt-1 text-lg">Weekly quiz done{q.levelUp ? " and a new level unlocked! 🚀" : " ✅"}</p>
+            <p className="mt-1 text-lg">Weekly quiz done{q.levelUp ? " and a new level unlocked!" : ""}</p>
           </div>
         ))}
         {w.achievements.map((a) => (

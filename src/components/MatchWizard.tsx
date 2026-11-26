@@ -90,7 +90,7 @@ export default function MatchWizard({ defaults, matchNumber }: { defaults: { tea
     const winLabel = WINS.find((w) => w.key === wins[0])?.label;
     return (
       <section className="card flex flex-col items-center gap-3 text-center">
-        <div className="text-5xl">🏏</div>
+        
         <h2 className="h-display text-3xl">Match saved!</h2>
         {winLabel ? <p className="text-lg">“{winLabel}” That&apos;s something worth being proud of.</p> : <p className="text-lg">Every match is part of your cricket journey.</p>}
         <p className="text-muted">Remember: one match never defines a cricketer.</p>
@@ -157,7 +157,7 @@ export default function MatchWizard({ defaults, matchNumber }: { defaults: { tea
           </div>
           {m.battingStatus === "out" && (
             <>
-              <p className="rounded-xl bg-turf/10 p-3 text-base">Getting out is part of cricket. It happens to every batter, even the best in the world. 🌱</p>
+              <p className="rounded-xl bg-turf/10 p-3 text-base">Getting out is part of cricket. It happens to every batter, even the best in the world.</p>
               <p className="label mt-2">How? (if you know)</p>
               <div className="grid grid-cols-3 gap-2">
                 {["Bowled", "Caught", "LBW", "Run out", "Stumped", "Other"].map((h) => (
@@ -219,7 +219,7 @@ export default function MatchWizard({ defaults, matchNumber }: { defaults: { tea
     case "reflectIntro":
       body = (
         <div className="flex flex-col gap-3">
-          <h2 className="text-2xl font-bold">Stats done! ✅</h2>
+          <h2 className="text-2xl font-bold">Stats done</h2>
           <p className="text-lg">Now a few quick taps about how the game felt. There are no wrong answers, and you can skip any question.</p>
           {nav(true, "Let's go")}
         </div>
@@ -262,7 +262,7 @@ export default function MatchWizard({ defaults, matchNumber }: { defaults: { tea
       body = (
         <div className="flex flex-col gap-3">
           <OptionQuestion
-            title="What went well for you today? Pick any 🙌"
+            title="What went well for you today? Pick any"
             options={options.map((w) => ({ value: w.key, label: w.label }))}
             multi
             selected={wins}

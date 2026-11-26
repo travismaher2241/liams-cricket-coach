@@ -24,7 +24,7 @@ export default async function Reveal({ params }: { params: Promise<{ id: string 
   // Only factual numbers. No invented improvement. Parent notes are never shown here.
   return (
     <main className="flex flex-col gap-4 pt-4">
-      <div className="text-center text-6xl">🏆</div>
+      
       <h1 className="h-display text-center text-3xl">Look how far you&apos;ve come!</h1>
       <p className="text-center text-lg">
         {weeks === 1 ? "Over the past week" : `Over the past ${weeks} weeks`}, your cricket challenges have been helping you develop <b>{area}</b>.

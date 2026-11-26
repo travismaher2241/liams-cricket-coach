@@ -23,8 +23,7 @@ export default function Checkin({ slotId, title }: { slotId: string; title: stri
         <div className="grid grid-cols-2 gap-2">
           {CHECKIN_FEELINGS.map((f) => (
             <button key={f.v} onClick={() => { setFeeling(f.v); next(); }} className="choice !py-4 text-center">
-              <span className="block text-3xl">{f.icon}</span>
-              {f.label}
+                            {f.label}
             </button>
           ))}
         </div>
@@ -35,7 +34,7 @@ export default function Checkin({ slotId, title }: { slotId: string; title: stri
   if (step === 1)
     return (
       <section className="flex flex-col gap-3">
-        {feeling === 1 && <p className="rounded-xl bg-turf/10 p-3">Tough sessions happen to everyone. Turning up and having a go is what counts. 💪</p>}
+        {feeling === 1 && <p className="rounded-xl bg-turf/10 p-3">Tough sessions happen to everyone. Turning up and having a go is what counts.</p>}
         <h2 className="text-2xl font-bold">What did you work on?</h2>
         <p className="text-muted">Tap all that fit.</p>
         <div className="grid grid-cols-2 gap-2">
@@ -53,7 +52,7 @@ export default function Checkin({ slotId, title }: { slotId: string; title: stri
         <h2 className="text-2xl font-bold">Anything you&apos;re proud of?</h2>
         <div className="grid gap-2">
           {CHECKIN_PROUD.map((a) => (
-            <button key={a} onClick={() => setProud(toggle(proud, a))} className={`choice !py-3 ${proud.includes(a) ? "choice-on" : ""}`}>{proud.includes(a) ? "⭐ " : ""}{a}</button>
+            <button key={a} onClick={() => setProud(toggle(proud, a))} className={`choice !py-3 ${proud.includes(a) ? "choice-on" : ""}`}>{a}</button>
           ))}
         </div>
         <button onClick={next} className="btn-primary">{proud.length ? "Next" : "Skip"}</button>
@@ -77,7 +76,7 @@ export default function Checkin({ slotId, title }: { slotId: string; title: stri
 
   return (
     <section className="card border-turf/60 bg-turf/10 text-center">
-      <p className="text-4xl">🏏</p>
+      
       <p className="mt-2 text-2xl font-bold">Nice work today!</p>
       <p className="mt-1 text-muted">{proud.length ? `${proud[0]}: that's worth remembering.` : "Every session counts."}</p>
       <Link href="/play" className="btn-primary mt-4 w-full">Done</Link>

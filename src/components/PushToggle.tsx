@@ -65,7 +65,7 @@ export default function PushToggle({ compact = false, publicKey }: { compact?: b
 
   return (
     <section className="card">
-      <p className="label">Coach messages 🔔</p>
+      <p className="label">Coach messages</p>
       {state === "needs-install" && (
         <p className="mt-1 text-sm text-muted">To get a message from your coach before training and games, add this app to your home screen first (Share, then Add to Home Screen) and open it from there.</p>
       )}
@@ -78,7 +78,7 @@ export default function PushToggle({ compact = false, publicKey }: { compact?: b
       )}
       {state === "on" && (
         <div className="mt-1 flex items-center justify-between gap-2">
-          <p className="text-sm">On for this phone ✅</p>
+          <p className="text-sm">On for this phone</p>
           <button onClick={turnOff} disabled={busy} className="btn-small">Turn off</button>
         </div>
       )}

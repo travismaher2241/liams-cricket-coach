@@ -143,7 +143,7 @@ export async function removePushSub(endpoint: string) {
 export async function sendTestPush() {
   const pid = await playerId();
   const { pushToPlayer } = await import("@/lib/mind");
-  return pushToPlayer(pid, { title: "A message from your coach", body: "Coach messages are on 👍 You'll get one before training and games.", url: "/play/mind", tag: "test" });
+  return pushToPlayer(pid, { title: "A message from your coach", body: "Coach messages are on. You'll get one before training and games.", url: "/play/mind", tag: "test" });
 }
 
 export async function addThought(fd: FormData) {

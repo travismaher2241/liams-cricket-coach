@@ -35,7 +35,7 @@ export default function DrillRunner({ drillId, minutes, measure, isChallenge }: 
     return (
       <div className="sticky bottom-24 flex flex-col gap-2">
         <button className="btn-primary text-xl" onClick={() => setStage("feedback")}>
-          I did it! ✅
+          I did it!
         </button>
         <Link href="/play/train" className="btn-ghost text-base">
           Swap for something else
@@ -46,7 +46,7 @@ export default function DrillRunner({ drillId, minutes, measure, isChallenge }: 
   if (stage === "feedback")
     return (
       <section className="card flex flex-col gap-5">
-        <h2 className="text-2xl font-bold">Nice work! 🙌</h2>
+        <h2 className="text-2xl font-bold">Nice work!</h2>
         {measure && (
           <div>
             <p className="mb-2 font-semibold">{measure.label} <span className="text-muted">(optional)</span></p>
@@ -64,9 +64,9 @@ export default function DrillRunner({ drillId, minutes, measure, isChallenge }: 
             </div>
           </div>
         )}
-        <Row title="How did it feel?" options={[[1, "😌 Easy"], [2, "👍 Just right"], [3, "😤 Tough"]]} value={difficulty} onPick={setDifficulty} />
-        <Row title="Fun?" options={[[1, "😐 Meh"], [2, "🙂 Good"], [3, "🤩 Loved it"]]} value={enjoyment} onPick={setEnjoyment} />
-        <Row title="Confidence?" options={[[1, "🤔 Unsure"], [2, "🙂 Okay"], [3, "💪 Strong"]]} value={confidence} onPick={setConfidence} />
+        <Row title="How did it feel?" options={[[1, "Easy"], [2, "Just right"], [3, "Tough"]]} value={difficulty} onPick={setDifficulty} />
+        <Row title="Fun?" options={[[1, "Meh"], [2, "Good"], [3, "Loved it"]]} value={enjoyment} onPick={setEnjoyment} />
+        <Row title="Confidence?" options={[[1, "Unsure"], [2, "Okay"], [3, "Strong"]]} value={confidence} onPick={setConfidence} />
         <div>
           <p className="mb-2 font-semibold">Do it again some time?</p>
           <div className="grid grid-cols-2 gap-2">
@@ -107,11 +107,11 @@ export default function DrillRunner({ drillId, minutes, measure, isChallenge }: 
 
   return (
     <section className="card flex flex-col items-center gap-3 border-turf text-center">
-      <div className="text-5xl">🎉</div>
+      
       <h2 className="h-display text-3xl">Done!</h2>
       <p className="text-lg">{minutes} more minutes of cricket in the bank. Every little bit counts.</p>
       {outcome?.newPB && (
-        <p className="rounded-xl bg-gold/15 px-3 py-2 font-semibold text-gold">⭐ New personal best! (was {outcome.previousBest})</p>
+        <p className="rounded-xl bg-gold/15 px-3 py-2 font-semibold text-gold">New personal best! (was {outcome.previousBest})</p>
       )}
       {outcome?.achievements.map((a) => (
         <p key={a.title} className="rounded-xl bg-turf/15 px-3 py-2 font-semibold text-turf">🏅 {a.title}</p>
