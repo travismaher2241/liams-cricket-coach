@@ -147,7 +147,7 @@ export async function sendDueNotes(now = new Date()) {
             ? { title: "How did the game go? 🏏", body: "Tap to record your game. Stats and how it felt, whenever you're ready.", url: "/play/match/new", tag: flag }
             : { title: `How was ${after.slot.title.toLowerCase()}? 🏏`, body: "Tap to add your training update. It only takes a minute.", url: `/play/after?slot=${encodeURIComponent(after.slot.id)}`, tag: flag },
         );
-        await repo.setFlag(p.id, flag);
+        if (sent > 0) await repo.setFlag(p.id, flag); // no phone signed up yet: try again next run
         out.push({ player: p.id, slot: `after-${after.slot.id}`, sent });
       }
     }
@@ -162,7 +162,7 @@ export async function sendDueNotes(now = new Date()) {
       url: "/play/mind",
       tag: note.id,
     });
-    await repo.markMindNotePushed(p.id, note.id);
+    if (sent > 0) await repo.markMindNotePushed(p.id, note.id); // no phone signed up yet: try again next run
     out.push({ player: p.id, slot: due.slot.id, sent });
   }
   return out;
