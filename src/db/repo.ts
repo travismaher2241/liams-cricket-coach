@@ -8,6 +8,7 @@ import type {
   MatchPrep,
   MindNote,
   PushSub,
+  SessionLog,
   Thought,
   Observation,
   Player,
@@ -243,3 +244,12 @@ export async function getOrCreateConfig<T extends object>(name: string, make: ()
     return (await ref.get()).data() as T; // another request created it first
   }
 }
+
+// ---- After-training check-ins (doc id = `${dateKey}-${slotId}`)
+export const getSessionLog = (pid: string, id: string) => one<SessionLog>(sub(pid, "sessionLogs").doc(id));
+export const setSessionLog = (pid: string, id: string, l: NoId<SessionLog>) => sub(pid, "sessionLogs").doc(id).set(l);
+export async function listSessionLogs(pid: string, limit = 30) {
+  return (await all<SessionLog>(sub(pid, "sessionLogs"))).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, limit);
+}
+export const getFlag = (pid: string, id: string) => one<{ id: string; at: Date }>(sub(pid, "flags").doc(id));
+export const setFlag = (pid: string, id: string) => sub(pid, "flags").doc(id).set({ at: new Date() });

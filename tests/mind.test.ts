@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_SCHEDULE, LESSONS, NOTE_FALLBACKS, RESET_STEPS, cleanSchedule, formatTime, isDistress, nextSession, sessionDueForPush, sessionNow } from "@/content/mind";
+import { DEFAULT_SCHEDULE, LESSONS, NOTE_FALLBACKS, RESET_STEPS, cleanSchedule, formatTime, isDistress, nextSession, sessionDueForAfterPush, sessionEndedToday, sessionDueForPush, sessionNow } from "@/content/mind";
 
 // November = AEDT (UTC+11).
 describe("mind schedule", () => {
@@ -40,5 +40,13 @@ describe("mind schedule", () => {
     expect(isDistress("I feel like nobody likes me at cricket")).toBe(true);
     expect(isDistress("I'm nervous about getting out on Wednesday")).toBe(false);
     expect(isDistress("I got hit for six and felt bad")).toBe(false);
+  });
+  it("reminds him to add an update after the session ends", () => {
+    expect(sessionDueForAfterPush(DEFAULT_SCHEDULE, new Date("2026-11-30T06:50:00Z"))?.slot.id).toBe("mon"); // Mon 5:50pm, 20 min after 5:30 end
+    expect(sessionDueForAfterPush(DEFAULT_SCHEDULE, new Date("2026-11-30T06:35:00Z"))).toBeNull(); // 5:35pm, too soon
+    expect(sessionDueForAfterPush(DEFAULT_SCHEDULE, new Date("2026-12-02T08:50:00Z"))?.slot.kind).toBe("match"); // Wed 7:50pm
+    expect(sessionDueForAfterPush([{ ...DEFAULT_SCHEDULE[0], durationMin: 60 }], new Date("2026-11-30T06:20:00Z"))?.slot.id).toBe("mon"); // 1h session
+    expect(sessionEndedToday(DEFAULT_SCHEDULE, new Date("2026-11-30T09:00:00Z"))?.slot.id).toBe("mon"); // 8pm
+    expect(sessionEndedToday(DEFAULT_SCHEDULE, new Date("2026-11-30T05:00:00Z"))).toBeNull(); // 4pm, still on
   });
 });

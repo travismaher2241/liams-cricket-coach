@@ -211,7 +211,7 @@ export async function saveWeeklySchedule(fd: FormData) {
     const day = str(fd, `day_${i}`);
     const time = str(fd, `time_${i}`);
     if (day === null || !time) continue;
-    rows.push({ id: str(fd, `id_${i}`) || `s${Date.now().toString(36)}${i}`, day: Number(day), time, kind: str(fd, `kind_${i}`), title: str(fd, `title_${i}`) });
+    rows.push({ id: str(fd, `id_${i}`) || `s${Date.now().toString(36)}${i}`, day: Number(day), time, kind: str(fd, `kind_${i}`), title: str(fd, `title_${i}`), durationMin: Number(str(fd, `dur_${i}`)) || undefined });
   }
   await repo.updatePlayer(s.pid, { weeklySchedule: cleanSchedule(rows) });
   revalidatePath("/parent/mind");

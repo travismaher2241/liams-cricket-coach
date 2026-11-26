@@ -207,3 +207,17 @@ export interface PushSub {
   role: "player" | "parent";
   createdAt: Date;
 }
+
+/** Liam's quick check-in after a training session. */
+export interface SessionLog {
+  id: string; // = `${dateKey}-${slotId}`
+  playerId: string;
+  slotId: string;
+  title: string;
+  dateKey: string;
+  feeling: number | null;
+  worked: string[];
+  proud: string[];
+  note: string | null;
+  createdAt: Date;
+}

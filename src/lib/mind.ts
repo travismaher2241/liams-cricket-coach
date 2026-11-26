@@ -9,6 +9,7 @@ import {
   NOTE_FALLBACKS,
   cleanSchedule,
   isDistress,
+  sessionDueForAfterPush,
   sessionDueForPush,
   sessionNow,
   type ScheduleSlot,
@@ -131,6 +132,25 @@ export async function sendDueNotes(now = new Date()) {
   const players = await repo.listPlayers();
   const out: { player: string; slot: string; sent: number }[] = [];
   for (const p of players) {
+    const after = sessionDueForAfterPush(scheduleFor(p), now);
+    if (after) {
+      const flag = `after-${after.dateKey}-${after.slot.id}`;
+      const already = await repo.getFlag(p.id, flag);
+      const logged =
+        after.slot.kind === "match"
+          ? (await repo.listMatches(p.id)).some((m) => m.matchDate === after.dateKey)
+          : !!(await repo.getSessionLog(p.id, `${after.dateKey}-${after.slot.id}`));
+      if (!already && !logged) {
+        const sent = await pushToPlayer(
+          p.id,
+          after.slot.kind === "match"
+            ? { title: "How did the game go? 🏏", body: "Tap to record your game. Stats and how it felt, whenever you're ready.", url: "/play/match/new", tag: flag }
+            : { title: `How was ${after.slot.title.toLowerCase()}? 🏏`, body: "Tap to add your training update. It only takes a minute.", url: `/play/after?slot=${encodeURIComponent(after.slot.id)}`, tag: flag },
+        );
+        await repo.setFlag(p.id, flag);
+        out.push({ player: p.id, slot: `after-${after.slot.id}`, sent });
+      }
+    }
     const due = sessionDueForPush(scheduleFor(p), now);
     if (!due) continue;
     const note = await ensureNote(p, due.slot, due.dateKey, now);

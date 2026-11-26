@@ -1,4 +1,5 @@
-import { listActivities } from "@/db/repo";
+import { listActivities, listSessionLogs } from "@/db/repo";
+import { CHECKIN_FEELINGS } from "@/content/mind";
 import { requireParent } from "@/lib/auth";
 import { personalBests } from "@/lib/data";
 import { DRILL_BY_ID, AREA_LABEL } from "@/content/drills";
@@ -10,6 +11,7 @@ export default async function Activity() {
   const { player } = await requireParent();
   const acts = (await listActivities(player.id)).slice(0, 100);
   const pbs = await personalBests(player.id);
+  const logs = await listSessionLogs(player.id, 20);
   const total = acts.reduce((a, b) => a + b.minutes, 0);
   const byDrill = new Map<string, { n: number; fun: number[] }>();
   for (const a of acts) {
@@ -21,6 +23,27 @@ export default async function Activity() {
   const ranked = [...byDrill].map(([id, e]) => ({ id, n: e.n, fun: e.fun.length ? e.fun.reduce((x, y) => x + y, 0) / e.fun.length : null }));
   return (
     <div className="flex flex-col gap-4">
+      <Section title="Training check-ins">
+        {logs.length === 0 ? (
+          <p className="text-sm text-muted">After each club training session, {player.displayName} gets a reminder to add a quick update. They&apos;ll show here.</p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-line/60 text-sm">
+            {logs.map((l) => {
+              const f = CHECKIN_FEELINGS.find((x) => x.v === l.feeling);
+              return (
+                <li key={l.id} className="py-2">
+                  <span className="font-semibold">{l.title}</span>
+                  <span className="text-muted"> · {new Date(l.dateKey + "T00:00:00").toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" })}</span>
+                  {f && <span> · {f.icon} {f.label}</span>}
+                  {l.worked.length > 0 && <span className="block text-muted">Worked on: {l.worked.join(", ")}</span>}
+                  {l.proud.length > 0 && <span className="block text-muted">Proud of: {l.proud.join(", ")}</span>}
+                  {l.note && <span className="block whitespace-pre-wrap">“{l.note}”</span>}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Section>
       <div className="grid gap-4 md:grid-cols-2">
         <Section title="Assessments & personal bests">
           {pbs.length === 0 ? <p className="text-sm text-muted">Measured activities (catches in 60s, target throws, sprints…) appear here once logged.</p> : (

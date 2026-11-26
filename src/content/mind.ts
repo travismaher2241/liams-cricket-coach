@@ -13,6 +13,8 @@ export interface ScheduleSlot {
   /** "HH:MM", 24-hour, Melbourne time. */
   time: string;
   kind: SessionKind;
+  /** How long it usually runs, in minutes. Defaults: training 90, game 150. */
+  durationMin?: number;
   title: string;
 }
 
@@ -275,11 +277,50 @@ export function cleanSchedule(raw: unknown): ScheduleSlot[] {
       time: s.time,
       kind: s.kind === "match" ? "match" : "training",
       title: String(s.title || (s.kind === "match" ? "Game day" : "Training")).slice(0, 60),
+      ...(Number(s.durationMin) >= 15 && Number(s.durationMin) <= 600 ? { durationMin: Math.round(Number(s.durationMin)) } : {}),
     }))
     .slice(0, 14);
 }
 
 /** Session whose phone notification is due now (PUSH_FROM_MIN..PUSH_TO_MIN before start). */
+export const slotDuration = (s: ScheduleSlot) => s.durationMin ?? (s.kind === "match" ? 150 : 90);
+
+/** After-session reminder window: from 15 min to 2 hours after the session ends. */
+export const AFTER_FROM_MIN = 15;
+export const AFTER_TO_MIN = 120;
+
+/** Session that finished recently enough for the "add your update" reminder. */
+export function sessionDueForAfterPush(schedule: ScheduleSlot[], now = new Date()) {
+  const n = melbNow(now);
+  for (const s of schedule) {
+    if (s.day !== n.day) continue;
+    const since = n.minutes - (slotMinutes(s.time) + slotDuration(s));
+    if (since >= AFTER_FROM_MIN && since <= AFTER_TO_MIN) return { slot: s, minutesSinceEnd: since, dateKey: n.dateKey };
+  }
+  return null;
+}
+
+/** Session that ended earlier today (up to 8 hours ago), for the home-screen prompt. */
+export function sessionEndedToday(schedule: ScheduleSlot[], now = new Date()) {
+  const n = melbNow(now);
+  let best: { slot: ScheduleSlot; dateKey: string; since: number } | null = null;
+  for (const s of schedule) {
+    if (s.day !== n.day) continue;
+    const since = n.minutes - (slotMinutes(s.time) + slotDuration(s));
+    if (since >= 0 && since <= 480 && (!best || since < best.since)) best = { slot: s, dateKey: n.dateKey, since };
+  }
+  return best;
+}
+
+export const CHECKIN_FEELINGS = [
+  { v: 4, icon: "🤩", label: "Loved it" },
+  { v: 3, icon: "🙂", label: "Good" },
+  { v: 2, icon: "😐", label: "Okay" },
+  { v: 1, icon: "💪", label: "Tough one" },
+];
+export const CHECKIN_AREAS = ["Batting", "Bowling", "Fielding", "Keeping", "Running & fitness", "Match practice"];
+export const CHECKIN_PROUD = ["A good shot", "A good ball", "A good catch or stop", "Tried something new", "Kept going", "Helped a teammate", "Listened to the coach"];
+
 export function sessionDueForPush(schedule: ScheduleSlot[], now = new Date()) {
   const n = melbNow(now);
   for (const s of schedule) {

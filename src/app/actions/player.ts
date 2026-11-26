@@ -6,7 +6,7 @@ import { getSession } from "@/lib/auth";
 import { DRILL_BY_ID } from "@/content/drills";
 import { refreshAchievements } from "@/lib/data";
 import { createHash } from "node:crypto";
-import { isDistress } from "@/content/mind";
+import { CHECKIN_AREAS, CHECKIN_PROUD, isDistress } from "@/content/mind";
 
 async function playerId() {
   const s = await getSession();
@@ -159,4 +159,27 @@ export async function deleteMyThought(id: string) {
   const pid = await playerId();
   await repo.deleteThought(pid, String(id));
   revalidatePath("/play/mind/thoughts");
+}
+
+export async function saveCheckin(input: { slotId: string; feeling: number | null; worked: string[]; proud: string[]; note: string }) {
+  const pid = await playerId();
+  const p = await repo.getPlayer(pid);
+  if (!p) return;
+  const { scheduleFor } = await import("@/lib/mind");
+  const slot = scheduleFor(p).find((s) => s.id === input.slotId);
+  const dateKey = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
+  const id = `${dateKey}-${slot?.id ?? "extra"}`;
+  const pick = (xs: unknown, ok: string[]) => (Array.isArray(xs) ? xs.map(String).filter((x) => ok.includes(x)) : []);
+  await repo.setSessionLog(pid, id, {
+    playerId: pid,
+    slotId: slot?.id ?? "extra",
+    title: slot?.title ?? "Training",
+    dateKey,
+    feeling: [1, 2, 3, 4].includes(Number(input.feeling)) ? Number(input.feeling) : null,
+    worked: pick(input.worked, CHECKIN_AREAS),
+    proud: pick(input.proud, CHECKIN_PROUD),
+    note: String(input.note ?? "").trim().slice(0, 1000) || null,
+    createdAt: new Date(),
+  });
+  revalidatePath("/play");
 }

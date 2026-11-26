@@ -4,7 +4,7 @@ import { Section } from "@/components/ui";
 import { scheduleFor } from "@/lib/mind";
 import { listPushSubs, listThoughts } from "@/db/repo";
 import { parentTestPush } from "@/app/actions/parent";
-import { DAY_NAMES, LESSONS, NOTE_FALLBACKS, formatTime } from "@/content/mind";
+import { DAY_NAMES, LESSONS, NOTE_FALLBACKS, formatTime, slotDuration } from "@/content/mind";
 
 export default async function MindParent({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
   const { player } = await requireParent();
@@ -57,13 +57,14 @@ export default async function MindParent({ searchParams }: { searchParams: Promi
 
       <Section title="Weekly routine">
         <p className="mb-3 text-sm text-muted">
-          {player.displayName} gets a short positive note in the app from about 2 hours before each of these (Melbourne time). Gemini writes each note
+          The minutes box is how long each session usually runs. About 15 minutes after it ends, {player.displayName} gets a reminder to add his training update (or record the
+          game), unless he&apos;s already done it. {player.displayName} gets a short positive note in the app from about 2 hours before each of these (Melbourne time). Gemini writes each note
           around one calm theme: getting out is normal, getting hit for four or six is the batter&apos;s job, everyone misfields, watch the ball, nerves mean you care, teammates,
           or a fresh start. If he&apos;s named a favourite cricketer in his setup, notes can mention that even they have those moments. Built-in lines are the backup.
         </p>
         <form action={saveWeeklySchedule} className="flex flex-col gap-2">
           {rows.map((r, i) => (
-            <div key={i} className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_7rem_8rem_2fr]">
+            <div key={i} className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_7rem_8rem_6rem_2fr]">
               <input type="hidden" name={`id_${i}`} defaultValue={r?.id ?? ""} />
               <select className="input" name={`day_${i}`} defaultValue={r ? String(r.day) : ""} aria-label="Day">
                 <option value="">(none)</option>
@@ -74,13 +75,14 @@ export default async function MindParent({ searchParams }: { searchParams: Promi
                 <option value="training">Training</option>
                 <option value="match">Game</option>
               </select>
+              <input className="input" name={`dur_${i}`} inputMode="numeric" defaultValue={r ? String(slotDuration(r)) : ""} placeholder="mins" aria-label="Length in minutes" title="Length in minutes" />
               <input className="input" name={`title_${i}`} defaultValue={r?.title ?? ""} placeholder="e.g. Senior team training" aria-label="Title" />
             </div>
           ))}
           <button className="btn-primary mt-2 self-start">Save routine</button>
         </form>
         {schedule.length > 0 && (
-          <p className="mt-3 text-xs text-muted">Now: {schedule.map((s) => `${DAY_NAMES[s.day]} ${formatTime(s.time)} ${s.title}`).join(" · ")}</p>
+          <p className="mt-3 text-xs text-muted">Now: {schedule.map((s) => `${DAY_NAMES[s.day]} ${formatTime(s.time)} ${s.title} (${slotDuration(s)} min)`).join(" · ")}</p>
         )}
       </Section>
 

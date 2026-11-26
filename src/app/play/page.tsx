@@ -7,7 +7,9 @@ import { personalBests, recentAchievements, recommendContext, upcomingEvents, pe
 import { weekKey } from "@/lib/quizEngine";
 import { fallbackHello } from "@/lib/coachAI";
 import { AREA_LABEL } from "@/content/drills";
-import { preSessionNote, pushPublicKey } from "@/lib/mind";
+import { preSessionNote, pushPublicKey, scheduleFor } from "@/lib/mind";
+import { sessionEndedToday } from "@/content/mind";
+import { getSessionLog, listMatches } from "@/db/repo";
 import PushToggle from "@/components/PushToggle";
 
 export default async function PlayerHome({ searchParams }: { searchParams: Promise<{ skip?: string }> }) {
@@ -27,6 +29,12 @@ export default async function PlayerHome({ searchParams }: { searchParams: Promi
     pushPublicKey(),
   ]);
   const [weeklyDone] = await listQuizAttempts(player.id, { kind: "weekly", weekKey: weekKey(new Date()) });
+  const ended = sessionEndedToday(scheduleFor(player));
+  const endedLogged = ended
+    ? ended.slot.kind === "match"
+      ? (await listMatches(player.id)).some((m) => m.matchDate === ended.dateKey)
+      : !!(await getSessionLog(player.id, `${ended.dateKey}-${ended.slot.id}`))
+    : true;
   const nextMatch = events.find((e) => e.type === "match");
   const matchSoon = nextMatch && nextMatch.startsAt.getTime() - Date.now() < 2 * 86400000;
 
@@ -44,6 +52,14 @@ export default async function PlayerHome({ searchParams }: { searchParams: Promi
           </p>
           <p className="mt-1 text-xl font-semibold leading-snug">{note.text}</p>
           <p className="mt-2 text-sm text-muted">Out, hit for six, misfield: it happens to everyone. Enjoy it. 🌱</p>
+        </Link>
+      )}
+
+      {ended && !endedLogged && (
+        <Link href={ended.slot.kind === "match" ? "/play/match/new" : `/play/after?slot=${encodeURIComponent(ended.slot.id)}`} className="card border-sky bg-sky/10">
+          <p className="label text-sky">{ended.slot.kind === "match" ? "After the game" : "After training"}</p>
+          <p className="mt-1 text-xl font-bold">{ended.slot.kind === "match" ? "How did the game go?" : `How was ${ended.slot.title.toLowerCase()}?`}</p>
+          <p className="text-sm text-muted">{ended.slot.kind === "match" ? "Record your game →" : "Add your training update. It takes a minute →"}</p>
         </Link>
       )}
 
