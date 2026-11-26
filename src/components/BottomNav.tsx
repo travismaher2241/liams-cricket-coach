@@ -1,11 +1,12 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Brain, Dumbbell, House, MessageCircle, Trophy, type LucideIcon } from "lucide-react";
+import { BookOpen, Brain, House, MessageCircle, Trophy } from "lucide-react";
+import NetIcon from "@/components/NetIcon";
 
-const TABS: { href: string; label: string; Icon: LucideIcon }[] = [
+const TABS: { href: string; label: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number }> }[] = [
   { href: "/play", label: "Home", Icon: House },
-  { href: "/play/train", label: "Train", Icon: Dumbbell },
+  { href: "/play/train", label: "Train", Icon: NetIcon },
   { href: "/play/learn", label: "Learn", Icon: BookOpen },
   { href: "/play/mind", label: "Mind", Icon: Brain },
   { href: "/play/journey", label: "Journey", Icon: Trophy },
