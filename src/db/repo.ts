@@ -253,3 +253,4 @@ export async function listSessionLogs(pid: string, limit = 30) {
 }
 export const getFlag = (pid: string, id: string) => one<{ id: string; at: Date }>(sub(pid, "flags").doc(id));
 export const setFlag = (pid: string, id: string) => sub(pid, "flags").doc(id).set({ at: new Date() });
+export const getQuizAttempt = (pid: string, id: string) => one<QuizAttempt>(sub(pid, "quizAttempts").doc(id));

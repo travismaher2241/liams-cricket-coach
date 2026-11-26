@@ -26,7 +26,8 @@ export async function submitQuiz(kind: "weekly" | "practice", answers: Submitted
       const v = CONCEPT_BY_ID[conceptId]?.variants[Number(vi)];
       if (!v) return null;
       const okTexts = [v.options[v.answer], ...(v.alsoOk ?? []).map((i) => v.options[i])];
-      return { questionId: a.questionId, conceptId, correct: okTexts.includes(a.chosen) };
+      const chosen = v.options.includes(String(a.chosen)) ? String(a.chosen) : null;
+      return { questionId: a.questionId, conceptId, correct: !!chosen && okTexts.includes(chosen), chosen };
     })
     .filter((x): x is NonNullable<typeof x> => !!x);
 

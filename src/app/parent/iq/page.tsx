@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { listQuizAttempts } from "@/db/repo";
 import { requireParent } from "@/lib/auth";
 import { answerHistory } from "@/lib/data";
@@ -35,10 +36,10 @@ export default async function IQ() {
       <Section title="Quiz history">
         {attempts.length === 0 ? <p className="text-sm text-muted">None yet.</p> : (
           <table className="w-full text-left text-sm">
-            <thead className="text-muted"><tr><th>Date</th><th>Type</th><th>Level</th><th>Score</th></tr></thead>
+            <thead className="text-muted"><tr><th>Date</th><th>Type</th><th>Level</th><th>Score</th><th></th></tr></thead>
             <tbody>
               {attempts.map((a) => (
-                <tr key={a.id}><td className="py-1">{a.completedAt.toLocaleDateString("en-AU")}</td><td>{a.kind}</td><td>{a.level}</td><td>{a.score}/{a.total}{a.levelUp ? " ↑" : ""}</td></tr>
+                <tr key={a.id}><td className="py-1">{a.completedAt.toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne" })}</td><td>{a.kind === "weekly" ? "Weekly" : "Practice"}</td><td>{a.level}</td><td>{a.score}/{a.total}{a.levelUp ? " ↑" : ""}</td><td><Link href={`/parent/iq/${a.id}`} className="font-semibold text-turf underline">See answers</Link></td></tr>
               ))}
             </tbody>
           </table>

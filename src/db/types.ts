@@ -90,6 +90,8 @@ export interface QuizAnswer {
   questionId: string;
   conceptId: string;
   correct: boolean;
+  /** The option text Liam picked. Not stored before 2026-11-26. */
+  chosen?: string | null;
 }
 
 export interface QuizAttempt {
